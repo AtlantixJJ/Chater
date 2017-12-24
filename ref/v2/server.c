@@ -9,8 +9,8 @@
 
 int sockfd;//服务器socket
 int fds[100];//客户端的socketfd,100个元素，fds[0]~fds[99]
-int size =100 ;//用来控制进入聊天室的人数为100以内
-char* IP = "192.168.10.143";
+int size = 100;//用来控制进入聊天室的人数为100以内
+char* IP = "127.0.0.1";
 short PORT = 10222;
 typedef struct sockaddr SA;
 

@@ -8,7 +8,7 @@
 #include <pthread.h>
 
 int sockfd;//客户端socket
-char* IP = "192.168.10.143";//服务器的IP
+char* IP = "127.0.0.1";//服务器的IP
 short PORT = 10222;//服务器服务端口
 typedef struct sockaddr SA;
 char name[30];
