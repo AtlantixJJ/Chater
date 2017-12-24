@@ -7,7 +7,7 @@ SET(JSON_PATH ${PROJECT_SOURCE_DIR}/thirdparty/jsoncpp/)
 
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include)
 INCLUDE_DIRECTORIES(${JSON_PATH}/include)
-AUX_SOURCE_DIRECTORY(${PROJECT_SOURCE_DIR}/ DIR_SRCS)
+AUX_SOURCE_DIRECTORY(${PROJECT_SOURCE_DIR}/server SERVER_SRC)
 
 SET(EXECUTABLE_OUTPUT_PATH bin/)
 
@@ -19,5 +19,5 @@ ADD_EXECUTABLE(clientv1 ref/v1/client.c)
 ADD_EXECUTABLE(serverv2 ref/v2/server.c)
 ADD_EXECUTABLE(clientv2 ref/v2/client.c)
 
-ADD_EXECUTABLE(baseserver server/baseserver.cpp)
-TARGET_LINK_LIBRARIES(baseserver ${JSON_PATH}/build/debug/src/lib_json/libjsoncpp.a)
+ADD_EXECUTABLE(servermain ${SERVER_SRC})
+TARGET_LINK_LIBRARIES(servermain ${JSON_PATH}/build/debug/src/lib_json/libjsoncpp.a)

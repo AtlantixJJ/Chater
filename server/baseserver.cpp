@@ -1,15 +1,17 @@
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <sys/socket.h>
-#include <pthread.h>
-#include "json/json.h"
+#include "baseserver.h"
+#include "serverconfig.h"
 
-int main ()
+BaseServer::BaseServer(string config_fname)
 {
-    
-    return 0;
+    sc = new ServerConfig(config_fname);
+}
+
+BaseServer::BaseServer(const ServerConfig &sc)
+{
+    this->sc = new ServerConfig(sc);
+}
+
+BaseServer::~BaseServer()
+{
+    delete [] sc;
 }
