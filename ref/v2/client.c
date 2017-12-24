@@ -13,20 +13,23 @@ short PORT = 10222;//服务器服务端口
 typedef struct sockaddr SA;
 char name[30];
 
-void init(){
+void init()
+{
     sockfd = socket(PF_INET,SOCK_STREAM,0);
     struct sockaddr_in addr;
     addr.sin_family = PF_INET;
     addr.sin_port = htons(PORT);
     addr.sin_addr.s_addr = inet_addr(IP);
-    if (connect(sockfd,(SA*)&addr,sizeof(addr)) == -1){
+    if (connect(sockfd,(SA*)&addr,sizeof(addr)) == -1)
+    {
         perror("无法连接到服务器");
         exit(-1);
     }
     printf("客户端启动成功\n");
 }
 
-void start(){
+void start()
+{
     pthread_t id;
     void* recv_thread(void*);
     pthread_create(&id,0,recv_thread,0);
