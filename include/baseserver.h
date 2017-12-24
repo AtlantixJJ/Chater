@@ -9,6 +9,7 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <pthread.h>
+#include "common.h"
 #include "serverconfig.h"
 using namespace std;
 
@@ -19,13 +20,20 @@ public:
     BaseServer(std::string config_fname);
     ~BaseServer();
 
-private:
-    bool start_socket();
+    bool start_service();
 
 private:
+    bool init();
+    bool start_socket();
+    static void* service_thread(void* args);
+    void SendMsgToAll(char* msg);
+private:
     ServerConfig *sc;
+
+    ClientStatus *client_sockfd;
+
     int sockfd;
-    sockaddr_in addr;
+    struct sockaddr_in addr;
 };
 
 #endif
