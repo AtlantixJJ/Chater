@@ -11,7 +11,7 @@
 #include <unistd.h>
 #include <netinet/in.h>
 #include <pthread.h>
-
+//using namespace std;
 
 #define COUNT 5
 int socket_fd[COUNT]={0,-1,-1,-1,-1};

@@ -12,6 +12,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <pthread.h>
+//using namespace std;
 
 char recv_buf[1500],send_buf[1024];
 
@@ -51,7 +52,7 @@ int main(void){
     scanf("%s",name);
     send(sockfd,name,strlen(name),0);
 
-    if(pthread_create(&id,NULL,(void*)pthread_function,(void*)&sockfd)!=0)
+    if(pthread_create(&id, NULL, (void*)pthread_function, (void*)&sockfd)!=0)
         printf("create thread error\n");
     while(1){
         scanf("%s",send_buf);
