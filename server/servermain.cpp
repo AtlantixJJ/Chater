@@ -6,11 +6,11 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <pthread.h>
-#include "serverconfig.h"
+#include "baseserver.h"
 
 int main ()
 {
-    ServerConfig *sc = new ServerConfig("server_config.json");
-    std::cout << sc->toString();
+    BaseServer *server = new BaseServer("server_config.json");
+
     return 0;
 }

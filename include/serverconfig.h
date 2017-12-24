@@ -3,7 +3,7 @@
 
 #include <iostream>
 #include <fstream>
-#include <string>
+#include <string.h>
 #include "json/json.h"
 using namespace std;
 
@@ -16,14 +16,14 @@ public:
     ServerConfig(string fname);
     ~ServerConfig();
 
-    string toString();
+    string toString() const;
 
     void setFileName(string fname);
     void setValue(string key, Json::Value &val) {root[key] = val;}
     bool writeToFile();
 
-    const string getServerIP() const {return server_ip;}
-    int getServerPort() const {return server_port;}
+    const char* getServerIP() const {return server_ip.c_str();}
+    short getServerPort() const {return server_port;}
     int getMaxThread() const {return max_thr;}
 private:
     void setFieldValueFromJson();
@@ -33,7 +33,7 @@ private:
     string temp;
 
     string server_ip;
-    int server_port;
+    short server_port;
     int max_thr;
 
 private:

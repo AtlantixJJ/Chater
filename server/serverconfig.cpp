@@ -30,6 +30,7 @@ ServerConfig::ServerConfig(string fname)
     file_name = fname;
     ifstream fin(fname);
     fin >> root;
+    setFieldValueFromJson();
 }
 
 ServerConfig::ServerConfig()
@@ -59,12 +60,12 @@ const ServerConfig& ServerConfig::operator=(const ServerConfig &ref)
     return *this;
 }
 
-string ServerConfig::toString()
+string ServerConfig::toString() const
 {
-    std::ostringstream stream;
+    ostringstream stream;
     stream << root;
-    temp = "ServerConfig:\n" + stream.str();
-    return temp;
+    string tmp = "ServerConfig:\n" + stream.str();
+    return tmp;
 }
 
 void ServerConfig::setFileName(string fname)
