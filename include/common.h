@@ -6,14 +6,32 @@
 const int CLIENT_ONLINE     = 1;
 const int CLIENT_OFFLINE    = CLIENT_ONLINE + 1;
 const int CLIENT_UNINIT     = CLIENT_OFFLINE + 1;
+const int RECV_READY        = CLIENT_UNINIT + 1;
 
 class BaseServer;
+class BaseClient;
 
 struct message
 {
     int msg_type;
     int data_size;
     char data[1024];
+
+};
+
+class RecvStatus
+{
+public:
+    int sockfd;
+    int status;
+
+    BaseClient *client_interface;
+
+public:
+    RecvStatus(int sockfd, BaseClient *bi){reset(sockfd, bi);}
+
+private:
+    void reset(int sockfd, BaseClient *bi);
 
 };
 
