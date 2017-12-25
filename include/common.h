@@ -9,6 +9,14 @@ const int CLIENT_UNINIT     = CLIENT_OFFLINE + 1;
 
 class BaseServer;
 
+struct message
+{
+    int msg_type;
+    int data_size;
+    char data[1024];
+
+};
+
 class ClientStatus
 {
 public:

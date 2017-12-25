@@ -39,18 +39,18 @@ BaseServer::~BaseServer()
 void* BaseServer::service_thread(void *p)
 {
     ClientStatus *ptr = (ClientStatus*)p;
-    printf("pthread = %d\n", ptr->getSockfd());
+    printf("[BS][service=%d]\n", ptr->getSockfd());
     while(1)
     {
-        char buf[100] = {};
+        char buf[1100] = {};
         if (recv(ptr->getSockfd(), buf, sizeof(buf), 0) <= 0)
         {
             int i;
             
-            printf("退出：fd = %dquit\n", ptr->getSockfd());
+            printf("[BS][service=%d] quit\n", ptr->getSockfd());
             pthread_exit((void*)i);
         }
-        //把服务器接受到的信息发给所有的客户端
+
         ptr->getServerInterface()->process_message(ptr, (const char*)buf);
     }
 }
@@ -65,7 +65,7 @@ bool BaseServer::start_service()
         int fd = accept(sockfd, (sockaddr*)&fromaddr, &len);
         if (fd == -1)
         {
-            printf("[BS]...\n");
+            printf("[BS] Accept failed...\n");
             continue;
         }
         int i = 0;
@@ -122,6 +122,8 @@ bool BaseServer::start_socket()
 void BaseServer::process_message(ClientStatus *client, const char* msg)
 {
     int i;
+    //message *m = (message*)msg;
+
     for (i = 0;i < sc->getMaxThread();i++)
     {
         if (client_sockfd[i].isOnline())
