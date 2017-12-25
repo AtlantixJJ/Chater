@@ -11,6 +11,6 @@
 int main ()
 {
     BaseServer *server = new BaseServer("server_config.json");
-
+    server->start_service();
     return 0;
 }

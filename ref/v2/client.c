@@ -9,7 +9,7 @@
 
 int sockfd;//客户端socket
 char* IP = "127.0.0.1";//服务器的IP
-short PORT = 10222;//服务器服务端口
+short PORT = 12344;//服务器服务端口
 typedef struct sockaddr SA;
 char name[30];
 

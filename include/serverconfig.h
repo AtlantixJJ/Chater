@@ -29,9 +29,7 @@ private:
     void setFieldValueFromJson();
     void saveFieldValueToJson();
     void fromObj(const ServerConfig &ref);
-
-    string temp;
-
+    
     string server_ip;
     short server_port;
     int max_thr;

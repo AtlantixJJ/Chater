@@ -38,7 +38,7 @@ BaseServer::~BaseServer()
 
 void* BaseServer::service_thread(void *p)
 {
-    const ClientStatus *ptr = (ClientStatus*)p;
+    ClientStatus *ptr = (ClientStatus*)p;
     printf("pthread = %d\n", ptr->getSockfd());
     while(1)
     {
@@ -51,7 +51,7 @@ void* BaseServer::service_thread(void *p)
             pthread_exit((void*)i);
         }
         //把服务器接受到的信息发给所有的客户端
-        //SendMsgToAll(buf);
+        ptr->getServerInterface()->process_message(ptr, (const char*)buf);
     }
 }
 
@@ -74,11 +74,11 @@ bool BaseServer::start_service()
             if (client_sockfd[i].isAvailable())
             {
                 //记录客户端的socket
-                client_sockfd[i] = fd;
+                client_sockfd[i].reset(fd, this);
                 printf("fd = %d\n", fd);
                 //有客户端连接之后，启动线程给此客户服务
                 pthread_t tid;
-                pthread_create(&tid, 0, service_thread, &fd);
+                pthread_create(&tid, 0, service_thread, (void*)(client_sockfd + i));
                 break;
             }
             if (sc->getMaxThread() == i)
@@ -119,7 +119,7 @@ bool BaseServer::start_socket()
 
 }
 
-void BaseServer::SendMsgToAll(char* msg)
+void BaseServer::process_message(ClientStatus *client, const char* msg)
 {
     int i;
     for (i = 0;i < sc->getMaxThread();i++)

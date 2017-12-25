@@ -13,6 +13,8 @@
 #include "serverconfig.h"
 using namespace std;
 
+class ClientStatus;
+
 class BaseServer
 {
 public:
@@ -22,11 +24,11 @@ public:
 
     bool start_service();
 
+    void process_message(ClientStatus *client, const char* msg);
 private:
     bool init();
     bool start_socket();
     static void* service_thread(void* args);
-    void SendMsgToAll(char* msg);
 private:
     ServerConfig *sc;
 
