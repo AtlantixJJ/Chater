@@ -1,6 +1,7 @@
 #include "baseserver.h"
 #include "serverconfig.h"
 #include "common.h"
+#include "message.h"
 #include <unistd.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -119,17 +120,33 @@ bool BaseServer::start_socket()
 
 }
 
-void BaseServer::process_message(ClientStatus *client, const char* msg)
+void BaseServer::process_message(ClientStatus *client, const char* buf)
 {
     int i;
-    //message *m = (message*)msg;
+    Message *msg = new Message(buf);
+
+    //printf("Message recv : %s\n", msg->message);
+
+    if (msg->type == CLIENT_MSG_LOGIN)
+    {
+        // check passwd
+        // TODO: ignored here
+        
+        client->status = CLIENT_VERIFITED;
+        // send ack
+        Message *ack = new Message();
+        ack->type = CLIENT_MSG_ACK;
+        ack->content = "ack";
+    }
 
     for (i = 0;i < sc->getMaxThread();i++)
     {
         if (client_sockfd[i].isOnline())
         {
-            printf("sendto%d\n", client_sockfd[i]);
-            send(client_sockfd[i].getSockfd(), msg, strlen(msg), 0);
+            printf("sendto %d\n", client_sockfd[i].getSockfd());
+            send(client_sockfd[i].getSockfd(), msg->message, strlen(msg->message), 0);
         }
     }
+
+    delete msg;
 }

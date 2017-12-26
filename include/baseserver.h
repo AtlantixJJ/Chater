@@ -1,15 +1,8 @@
 #ifndef BASESERVER_H_
 #define BASESERVER_H_
 
-#include <stdio.h>
-#include <string>
-#include <stdlib.h>
-#include <unistd.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <sys/socket.h>
-#include <pthread.h>
 #include "common.h"
+#include "clientstatus.h"
 #include "serverconfig.h"
 using namespace std;
 
@@ -24,7 +17,7 @@ public:
 
     bool start_service();
 
-    void process_message(ClientStatus *client, const char* msg);
+    void process_message(ClientStatus *client, const char* buf);
 private:
     bool init();
     bool start_socket();

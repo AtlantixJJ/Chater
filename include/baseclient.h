@@ -15,10 +15,12 @@ class BaseClient
 
 friend class RecvStatus;
 public:
-    BaseClient(string fname);
+    BaseClient(string scf, string ccf);
     ~BaseClient();
 
-    void connectServer();
+    bool connectServer();
+
+    bool login();
 
     void start_communication();
 

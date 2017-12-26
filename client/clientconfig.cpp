@@ -1,4 +1,5 @@
 #include "clientconfig.h"
+#include <sstream>
 
 ClientConfig::ClientConfig():
     name("Xu Jianjin"),passwd("12345"),account("atlantix")
@@ -31,4 +32,12 @@ bool ClientConfig::writeToFile()
     ofstream fout(file_name);
     fout << root;
     return true;
+}
+
+const char* ClientConfig::getLoginContent()
+{
+    saveFieldValueToJson();
+    std::ostringstream stream;
+    stream << root;
+    return stream.str().c_str();
 }

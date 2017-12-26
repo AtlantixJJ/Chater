@@ -1,11 +1,12 @@
 #include "baseclient.h"
 #include "clientconfig.h"
 #include "common.h"
+#include "message.h"
 
-BaseClient::BaseClient(string fname)
+BaseClient::BaseClient(string scf, string ccf)
 {
-    sc = new ServerConfig(fname);
-    cc = new ClientConfig(fname);
+    sc = new ServerConfig(scf);
+    cc = new ClientConfig(ccf);
 }
 
 BaseClient::~BaseClient()
@@ -14,7 +15,7 @@ BaseClient::~BaseClient()
     delete [] cc;
 }
 
-void BaseClient::connectServer()
+bool BaseClient::connectServer()
 {
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     
@@ -23,10 +24,11 @@ void BaseClient::connectServer()
     addr.sin_addr.s_addr = inet_addr(sc->getServerIP());
     if (connect(sockfd,(sockaddr*)&addr,sizeof(addr)) == -1)
     {
-        perror("[BC] Connecting to server failed.\n");
-        exit(-1);
+        printf("[BC] Connecting to server failed.\n");
+        return false;
     }
     printf("[BC] Connection established.\n");
+    return true;
 }
 
 void* BaseClient::recv_thread(void* p){
@@ -37,24 +39,55 @@ void* BaseClient::recv_thread(void* p){
             return NULL;
         }
         printf("%s\n", buf);
+        sleep(1);
     }
+}
+
+bool BaseClient::login()
+{
+    Message *msg = new Message();
+    char buf[128];
+
+    // send name, account and password
+    msg->type = CLIENT_MSG_LOGIN;
+    msg->content = cc->getLoginContent();
+    msg->encodeMessage();
+    send(sockfd, msg->message, strlen(msg->message), 0);
+
+    // wait for ack
+    if(recv(sockfd, buf, sizeof(buf), 0) <= 0)
+        exitError("[BC] Recv Ack failed.\n");
+
+    msg->fromBuffer(buf);
+    msg->decodeMessage();
+    if(msg->type != CLIENT_MSG_ACK) 
+        exitError("[BC] Recv type is not Ack.\n");
+    
+    return true;
 }
 
 void BaseClient::start_communication()
 {
     pthread_t id;
+    Message *msg = new Message();
     RecvStatus *cs = new RecvStatus(sockfd, this);
+
     pthread_create(&id, 0, recv_thread, (void*)cs);
     char buf2[100] = {};
     sprintf(buf2, "%s进入了聊天室", cc->getName());
     send(sockfd, buf2, strlen(buf2), 0);
     while(1)
     {
-        char buf[100] = {};
+        char buf[1024] = {};
         scanf("%s", buf);
-        char msg[131] = {};
-        sprintf(msg, "%s:%s", cc->getName(), buf);
-        send(sockfd, msg, strlen(msg), 0);
+        
+        msg->type = CLIENT_MSG_WORD;
+        msg->content = buf;
+        msg->encodeMessage();
+        //printf("Encoded message : %s\n", msg->message);
+
+        send(sockfd, msg->message, strlen(msg->message), 0);
+
         if (strcmp(buf, "bye") == 0)
         {
             memset(buf2, 0, sizeof(buf2));
@@ -62,6 +95,10 @@ void BaseClient::start_communication()
             send(sockfd, buf2, strlen(buf2), 0);
             break;
         }
+
+        
     }
+
+    delete msg;
     close(sockfd);
 }

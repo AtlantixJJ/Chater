@@ -1,23 +1,34 @@
 #ifndef COMMON_H_
 #define COMMON_H_
 
-#include "baseserver.h"
+#include <stdio.h>
+#include <string>
+#include <stdlib.h>
+#include <unistd.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <sys/socket.h>
+#include <pthread.h>
+#include "baseclient.h"
 
 const int CLIENT_ONLINE     = 1;
-const int CLIENT_OFFLINE    = CLIENT_ONLINE + 1;
+const int CLIENT_VERIFITED  = CLIENT_ONLINE + 1;
+const int CLIENT_OFFLINE    = CLIENT_VERIFITED + 1;
 const int CLIENT_UNINIT     = CLIENT_OFFLINE + 1;
 const int RECV_READY        = CLIENT_UNINIT + 1;
 
-class BaseServer;
-class BaseClient;
+const int CLIENT_MSG_WORD      = RECV_READY + 1;
+const int CLIENT_MSG_REGISTER  = CLIENT_MSG_WORD + 1;
+const int CLIENT_MSG_LOGIN     = CLIENT_MSG_REGISTER + 1;
+const int CLIENT_MSG_ACK       = CLIENT_MSG_LOGIN + 1;
 
-struct message
+inline void exitError(const char *msg)
 {
-    int msg_type;
-    int data_size;
-    char data[1024];
+    perror(msg);
+    exit(-1);
+}
 
-};
+class BaseClient;
 
 class RecvStatus
 {
@@ -35,41 +46,6 @@ private:
 
 };
 
-class ClientStatus
-{
-public:
-    ClientStatus() {
-        sockfd = -1;
-        status = CLIENT_UNINIT;
-        server_interface = nullptr;
-    }
 
-    ClientStatus(int s, BaseServer *si) {
-        reset(s, si);
-    }
-
-    void reset(int s, BaseServer *si) {
-        sockfd = s;
-        status = CLIENT_ONLINE;
-        server_interface = si;
-    }
-
-    BaseServer* getServerInterface() {return server_interface;}
-
-    void disconnected() {status = CLIENT_OFFLINE;}
-    
-    bool isOnline() const {return (status == CLIENT_ONLINE);}
-    bool isAvailable() const {return (status == CLIENT_UNINIT);}
-    int getSockfd() const {return sockfd;}
-
-private:
-    void init();
-
-private:
-    int sockfd;
-    int status;
-
-    BaseServer *server_interface;
-};
 
 #endif 
