@@ -11,6 +11,7 @@
 
 bool BaseServer::init()
 {
+    db = nullptr;
     std::cout << "[BS] " << sc->toString() << std::endl;
 
     client_sockfd = new ClientStatus[sc->getMaxThread()];
@@ -47,7 +48,7 @@ void* BaseServer::service_thread(void *p)
         if (recv(ptr->getSockfd(), buf, sizeof(buf), 0) <= 0)
         {
             int i;
-            
+            ptr->status = CLIENT_OFFLINE;
             printf("[BS][service=%d] quit\n", ptr->getSockfd());
             pthread_exit((void*)i);
         }
@@ -120,32 +121,48 @@ bool BaseServer::start_socket()
 
 }
 
+bool BaseServer::verify_passwd(ClientStatus *client, std::string content)
+{
+    Json::Value root;
+    std::istringstream stream(content);
+    stream >> root;
+    std::cout << root <<std::endl;
+
+    bool passed = db->loginVerify(root["account"].asString(), root["passwd"].asString());
+    if (!passed)
+    {
+        printf("[BS] Verification failed.\n");
+        return false;
+    }
+
+    Message *ack = new Message();
+    ack->type = CLIENT_MSG_ACK;
+    ack->content = "1";
+    ack->encodeMessage();
+    send(client->getSockfd(), ack->message, strlen(ack->message), 0);
+    delete ack;
+
+    return true;
+}
+
 void BaseServer::process_message(ClientStatus *client, const char* buf)
 {
     int i;
     Message *msg = new Message(buf);
 
-    //printf("Message recv : %s\n", msg->message);
+    printf("Message recv : %s\n", msg->message);
+    msg->decodeMessage();
 
-    if (msg->type == CLIENT_MSG_LOGIN)
+    switch(msg->type)
     {
-        // check passwd
-        // TODO: ignored here
-        
-        client->status = CLIENT_VERIFITED;
-        // send ack
-        Message *ack = new Message();
-        ack->type = CLIENT_MSG_ACK;
-        ack->content = "ack";
-    }
-
-    for (i = 0;i < sc->getMaxThread();i++)
-    {
-        if (client_sockfd[i].isOnline())
-        {
-            printf("sendto %d\n", client_sockfd[i].getSockfd());
-            send(client_sockfd[i].getSockfd(), msg->message, strlen(msg->message), 0);
-        }
+    case CLIENT_MSG_LOGIN:
+        verify_passwd(client, msg->content);
+        break;
+    case CLIENT_MSG_REGISTER:
+        register_user(client, msg->content);
+        break;
+    case CLIENT_MSG_WORD:
+        break;
     }
 
     delete msg;

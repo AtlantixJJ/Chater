@@ -8,7 +8,9 @@
 #include <string.h>
 using namespace std;
 
-
+/**
+ * Using JSON directly for user status control
+ **/
 class UserDataBase
 {
 public:
@@ -16,6 +18,10 @@ public:
     UserDataBase(std::string fname);
 
     void writeToFile();
+
+    bool loginVerify(string account, string passwd);
+    
+    void registerUser(string account, string passwd);
 
 private:
     void fromJson();

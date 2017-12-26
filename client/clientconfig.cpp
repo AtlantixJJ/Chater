@@ -10,13 +10,16 @@ ClientConfig::ClientConfig():
 ClientConfig::ClientConfig(string fname)
 {
     file_name = fname;
+    std::ifstream fin(fname);
+    fin >> root;
+    setFieldValueFromJson();
 }
 
 void ClientConfig::setFieldValueFromJson()
 {
-    name            = root["name   "].asString();
+    name            = root["name"   ].asString();
     account         = root["account"].asString();
-    passwd          = root["passwd "].asString();
+    passwd          = root["passwd" ].asString();
 }
 
 void ClientConfig::saveFieldValueToJson()
@@ -37,7 +40,9 @@ bool ClientConfig::writeToFile()
 const char* ClientConfig::getLoginContent()
 {
     saveFieldValueToJson();
-    std::ostringstream stream;
-    stream << root;
-    return stream.str().c_str();
+    Json::StreamWriterBuilder wbuilder;
+    wbuilder["indentation"] = ""; // No identation for message encoding
+    std::string document = Json::writeString(wbuilder, root);
+    //std::cout <<"root\n" << root;
+    return document.c_str();
 }

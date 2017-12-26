@@ -52,6 +52,7 @@ bool BaseClient::login()
     // send name, account and password
     msg->type = CLIENT_MSG_LOGIN;
     msg->content = cc->getLoginContent();
+    //printf("content:\n%s\n",msg->content.c_str());
     msg->encodeMessage();
     send(sockfd, msg->message, strlen(msg->message), 0);
 

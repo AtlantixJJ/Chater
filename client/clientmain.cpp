@@ -17,7 +17,7 @@ int main()
     bool ctrl_flag[64];
     int state = 0;
 
-    printf("Simple client by 2015011313.\n");
+    printf("| Simple client by 2015011313.\n");
     
     while(true)
     {
@@ -27,8 +27,9 @@ int main()
         while(true)
         {
             cin >> cmd;
-            if (cmd.find("fastlogin") > 0) break;
-            else if (cmd.find("login") > 0) {
+            //cout << (int)cmd.find("fastlogin") << " " << (int)cmd.find("login") <<endl;
+            if ((int)cmd.find("fastlogin") > -1) break;
+            else if ((int)cmd.find("login") > -1) {
                 cin >> arg1 >> arg2 >> arg3;
                 bc->getClientConfig()->account = arg1;
                 bc->getClientConfig()->passwd = arg2;
@@ -36,24 +37,26 @@ int main()
                 break;
             }
         }
+        printf("| Connecting to server.\n");
 
         state ++;
         ctrl_flag[state] = bc->connectServer();
         if(!ctrl_flag[state])
         {
-            printf("Connection to server failed.\n");
+            printf("| Connection to server failed.\n");
             continue;
         }
+        printf("| Login to server.\n");
         
         state ++;
         ctrl_flag[state] = bc->login();
         if(!ctrl_flag[state])
         {
-            printf("Login to server failed.\n");
+            printf("| Login to server failed.\n");
             continue;
         }
 
-        printf("Login ackwonledged.\n");
+        printf("| Login ackwonledged.\n");
 
         bc->start_communication();
     }
