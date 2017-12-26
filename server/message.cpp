@@ -17,9 +17,10 @@ void Message::fromBuffer(const char *buf)
 void Message::encodeMessage()
 {
     toJson();
-    ostringstream stream;
-    stream << root;
-    message = stream.str().c_str();
+    Json::StreamWriterBuilder wbuilder;
+    wbuilder["indentation"] = ""; // No identation for message encoding
+    std::string document = Json::writeString(wbuilder, root);
+    message = document.c_str();
 }
 
 void Message::decodeMessage()

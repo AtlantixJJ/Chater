@@ -33,7 +33,8 @@ bool BaseClient::connectServer()
 
 void* BaseClient::recv_thread(void* p){
     RecvStatus *ptr = (RecvStatus*)p;
-    while(1){
+    while(1)
+    {
         char buf[100] = {};
         if (recv(ptr->sockfd, buf, sizeof(buf), 0) <= 0){
             return NULL;

@@ -24,6 +24,8 @@ public:
 
     void start_communication();
 
+    ClientConfig* getClientConfig() {return cc;}
+
 private:
     static void* recv_thread(void *p);
 

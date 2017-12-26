@@ -21,6 +21,7 @@ const int CLIENT_MSG_WORD      = RECV_READY + 1;
 const int CLIENT_MSG_REGISTER  = CLIENT_MSG_WORD + 1;
 const int CLIENT_MSG_LOGIN     = CLIENT_MSG_REGISTER + 1;
 const int CLIENT_MSG_ACK       = CLIENT_MSG_LOGIN + 1;
+const int CLIENT_MSG_LIST      = CLIENT_MSG_ACK + 1;
 
 inline void exitError(const char *msg)
 {

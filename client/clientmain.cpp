@@ -13,7 +13,7 @@ using namespace std;
 int main()
 {
     BaseClient *bc = new BaseClient("server_config.json", "client_config.json");
-    string cmd, arg1, arg2;
+    string cmd, arg1, arg2, arg3;
     bool ctrl_flag[64];
     int state = 0;
 
@@ -22,11 +22,19 @@ int main()
     while(true)
     {
         state = 0;
+        
         // First : login or register
         while(true)
         {
             cin >> cmd;
-            if (cmd == "login") break;
+            if (cmd.find("fastlogin") > 0) break;
+            else if (cmd.find("login") > 0) {
+                cin >> arg1 >> arg2 >> arg3;
+                bc->getClientConfig()->account = arg1;
+                bc->getClientConfig()->passwd = arg2;
+                bc->getClientConfig()->name = arg3;
+                break;
+            }
         }
 
         state ++;

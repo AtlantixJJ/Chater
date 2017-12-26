@@ -8,8 +8,13 @@
 #include <pthread.h>
 #include "baseserver.h"
 
+#include "userdatabase.h"
+
 int main ()
 {
+    UserDataBase *db = new UserDataBase("DataBase.json");
+    db->writeToFile();
+
     BaseServer *server = new BaseServer("server_config.json");
     server->start_service();
     return 0;
