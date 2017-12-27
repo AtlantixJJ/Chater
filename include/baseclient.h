@@ -22,15 +22,22 @@ public:
 
     bool login();
     bool register_account();
+    bool sendRequest(int op);
 
     void start_communication();
 
     ClientConfig* getClientConfig() {return cc;}
 
+public:
+    vector<string> friends;
+    vector<string> all_users;
+
 private:
+    bool process_response(int op, string content);
     static void* recv_thread(void *p);
 
 private:
+
     ServerConfig *sc;
     ClientConfig *cc;
 

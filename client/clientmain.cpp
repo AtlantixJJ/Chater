@@ -17,6 +17,31 @@ bool doRegister(BaseClient *bc)
     return flag;
 }
 
+bool serve(BaseClient *bc)
+{
+    string cmd, arg1, arg2;
+    int op;
+    while(true)
+    {
+        cout << ">> ";
+        cin >> cmd;
+        op = decodeCMD(cmd);
+
+        switch(op)
+        {
+        case CLIENT_MSG_SEARCH:
+            cout << " | Request to search all users." << endl;
+            if(bc->sendRequest(op)) {
+                for(auto name : bc->all_users)
+                    cout << name << endl;
+            } else
+                cout << " | Search request failed." << endl;
+            break;
+        }
+        
+    }
+}
+
 int main()
 {
     BaseClient *bc = new BaseClient("server_config.json", "client_config.json");
@@ -81,7 +106,8 @@ int main()
 
         printf("| Login ackwonledged.\n");
 
-        //bc->start_communication();
+        // The circulation of login state
+        serve(bc);
     }
     return 0;
 }

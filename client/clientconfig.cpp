@@ -12,6 +12,7 @@ ClientConfig::ClientConfig(string fname)
     file_name = fname;
     std::ifstream fin(fname);
     fin >> root;
+    cout << root <<endl;
     setFieldValueFromJson();
 }
 
@@ -43,6 +44,7 @@ const char* ClientConfig::getLoginContent()
     Json::StreamWriterBuilder wbuilder;
     wbuilder["indentation"] = ""; // No identation for message encoding
     std::string document = Json::writeString(wbuilder, root);
+    document += "\0\n\0";
     //std::cout <<"root\n" << root;
     return document.c_str();
 }

@@ -13,7 +13,7 @@ UserDataBase::UserDataBase(std::string fname)
     file_name = fname;
     ifstream fin(file_name);
     fin >> root;
-    cout << root << endl;
+    //mcout << root << endl;
 }
 
 void UserDataBase::fromJson()
@@ -41,10 +41,10 @@ void UserDataBase::writeToFile()
 
 bool UserDataBase::loginVerify(string account, string passwd)
 {
-    cout << account << " " << passwd << endl;
+    //cout << account << " " << passwd << endl;
     for(auto item : root)
     {
-        cout << item["account"] << " " << item["passwd"] << endl;
+        //cout << item["account"] << " " << item["passwd"] << endl;
         if (item["account"].asString() == account &&
             item["passwd"].asString() == passwd)
             return true;

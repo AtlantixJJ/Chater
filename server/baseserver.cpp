@@ -123,9 +123,7 @@ bool BaseServer::start_socket()
 
 bool BaseServer::verify_passwd(ClientStatus *client, std::string content)
 {
-    Json::Value root;
-    std::istringstream stream(content);
-    stream >> root;
+    Json::Value root;std::istringstream stream(content);stream >> root;
     std::cout << root <<std::endl;
 
     bool passed = db->loginVerify(root["account"].asString(), root["passwd"].asString());

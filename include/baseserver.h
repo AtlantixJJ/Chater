@@ -25,6 +25,7 @@ public:
 private:
     bool verify_passwd(ClientStatus *client, std::string content);
     bool register_user(ClientStatus *client, std::string content);
+
 private:
     bool init();
     bool start_socket();

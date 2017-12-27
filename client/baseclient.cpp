@@ -72,6 +72,39 @@ bool BaseClient::register_account()
         return false;
 }
 
+bool BaseClient::sendRequest(int op)
+{
+    Message *msg = new Message();
+    char buf[4096];
+
+    msg->type = op;
+    msg->content = "";
+    msg->encodeMessage();
+    send(sockfd, msg->message, strlen(msg->message), 0);
+    if(recv(sockfd, buf, sizeof(buf), 0) <= 0)
+        exitError("[BC] Recv response failed.\n");
+    
+    msg->fromBuffer(buf);
+    msg->decodeMessage();
+    printf("[BC] Response : %s\n", msg->content);
+    
+    return process_response(op, msg->content);
+}
+
+bool BaseClient::process_response(int op, string content)
+{
+    switch(op)
+    {
+    case CLIENT_MSG_SEARCH:
+        all_users.clear();
+        Json::Value node;std::istringstream stream(content);stream >> node;
+        for(auto item : node) all_users.push_back(item["account"].asString());
+        break;
+    }
+    
+    return true;
+}
+
 bool BaseClient::login()
 {
     Message *msg = new Message();
