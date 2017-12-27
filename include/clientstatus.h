@@ -27,9 +27,11 @@ public:
         server_interface = si;
     }
 
+    void verified(string ac) {status = CLIENT_VERIFITED; account = ac.c_str();}
+    //void unverified(string ac) {status = CLIENT_OFFLINE; account = ac;}
     BaseServer* getServerInterface() {return server_interface;}
 
-    void disconnected() {status = CLIENT_OFFLINE;}
+    void disconnected();
     
     bool isOnline() const {return (status == CLIENT_ONLINE);}
     bool isAvailable() const {return (status == CLIENT_UNINIT);}
@@ -37,6 +39,7 @@ public:
 
 private:
     void init();
+    string account;
 
 private:
     int sockfd;

@@ -38,13 +38,14 @@ bool ClientConfig::writeToFile()
     return true;
 }
 
-const char* ClientConfig::getLoginContent()
+string ClientConfig::getLoginContent()
 {
     saveFieldValueToJson();
+    std::ostringstream stream;
+
     Json::StreamWriterBuilder wbuilder;
     wbuilder["indentation"] = ""; // No identation for message encoding
-    std::string document = Json::writeString(wbuilder, root);
-    document += "\0\n\0";
-    //std::cout <<"root\n" << root;
-    return document.c_str();
+    std::string document = Json::writeString(wbuilder, root) + "\n\n\0\0";
+
+    return document;
 }

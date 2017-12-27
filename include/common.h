@@ -10,6 +10,7 @@
 #include <sys/socket.h>
 #include <pthread.h>
 #include "baseclient.h"
+#include "json/json.h"
 
 const int CLIENT_ONLINE     = 1;
 const int CLIENT_VERIFITED  = CLIENT_ONLINE + 1;
@@ -27,11 +28,6 @@ inline void exitError(const char *msg)
 {
     perror(msg);
     exit(-1);
-}
-
-int decodeCMD(std::string cmd)
-{
-    if (cmd.find("search") > -1) return CLIENT_MSG_SEARCH;
 }
 
 class BaseClient;

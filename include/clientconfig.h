@@ -19,7 +19,7 @@ public:
     ClientConfig(string fname);
 
     bool writeToFile();
-    const char* getLoginContent();
+    string getLoginContent();
     const char* getName()const{return name.c_str();}
 
 private:

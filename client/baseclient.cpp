@@ -86,7 +86,7 @@ bool BaseClient::sendRequest(int op)
     
     msg->fromBuffer(buf);
     msg->decodeMessage();
-    printf("[BC] Response : %s\n", msg->content);
+    printf("[BC] Response : %s\n", msg->message);
     
     return process_response(op, msg->content);
 }

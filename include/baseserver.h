@@ -11,6 +11,7 @@ class ClientStatus;
 
 class BaseServer
 {
+friend class ClientStatus;
 public:
     BaseServer(const ServerConfig &ref);
     BaseServer(std::string config_fname);
@@ -25,7 +26,7 @@ public:
 private:
     bool verify_passwd(ClientStatus *client, std::string content);
     bool register_user(ClientStatus *client, std::string content);
-
+    void sendResponse(ClientStatus *client, int op, std::string content);
 private:
     bool init();
     bool start_socket();

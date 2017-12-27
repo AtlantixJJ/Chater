@@ -19,9 +19,9 @@ void Message::encodeMessage()
     toJson();
     Json::StreamWriterBuilder wbuilder;
     wbuilder["indentation"] = ""; // No identation for message encoding
-    message_c = Json::writeString(wbuilder, root) + "\0\n\0\0";
+    message_c = Json::writeString(wbuilder, root) + "\n\n\0\0";
     message = message_c.c_str();
-    //printf("%s\n", message);
+    printf("Msg : %s\n", message);
 }
 
 void Message::decodeMessage()

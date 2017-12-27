@@ -49,7 +49,7 @@ void* BaseServer::service_thread(void *p)
             ptr->status == CLIENT_OFFLINE)
         {
             int i;
-            ptr->status = CLIENT_OFFLINE;
+            ptr->disconnected();
             printf("[BS][service=%d] quit\n", ptr->getSockfd());
             pthread_exit((void*)ptr);
         }
@@ -61,7 +61,7 @@ void* BaseServer::service_thread(void *p)
 bool BaseServer::start_service()
 {
     printf("[BS][service] Service start.\n");
-    while(1)
+    while(true)
     {
         struct sockaddr_in fromaddr;
         socklen_t len = sizeof(fromaddr);
@@ -123,10 +123,10 @@ bool BaseServer::start_socket()
 
 bool BaseServer::verify_passwd(ClientStatus *client, std::string content)
 {
-    Json::Value root;std::istringstream stream(content);stream >> root;
-    std::cout << root <<std::endl;
+    Json::Value node;std::istringstream stream(content);stream >> node;
+    std::cout << node <<std::endl;
 
-    bool passed = db->loginVerify(root["account"].asString(), root["passwd"].asString());
+    bool passed = db->loginVerify(node["account"].asString(), node["passwd"].asString());
     Message *ack = new Message();
     ack->type = CLIENT_MSG_ACK;
 
@@ -138,13 +138,14 @@ bool BaseServer::verify_passwd(ClientStatus *client, std::string content)
     else
     {
         ack->content = "1";
+        client->verified(node["account"].asString());
         printf("[BS] Verification succeed.\n");
     }
 
     ack->encodeMessage();
-    printf("[BS] Send ack : %s", ack->message);
-
+    printf("[BS] Send ack : %s\n", ack->message);
     send(client->getSockfd(), ack->message, strlen(ack->message), 0);
+
     delete ack;
 
     return true;
@@ -152,20 +153,26 @@ bool BaseServer::verify_passwd(ClientStatus *client, std::string content)
 
 bool BaseServer::register_user(ClientStatus *client, std::string content)
 {
-    client->status = CLIENT_OFFLINE;
     Json::Value root;std::istringstream stream(content);stream >> root;
 
-    db->registerUser(root["account"].asString(), root["passwd"].asString());
+    db->registerUser(root["account"].asString(),
+        root["passwd"].asString(), root["name"].asString());
 
+    sendResponse(client, CLIENT_MSG_ACK, "1");
+
+    client->disconnected();
+    return true;
+}
+
+void BaseServer::sendResponse(ClientStatus *client, int op, std::string content)
+{
     Message *ack = new Message();
-    ack->type = CLIENT_MSG_ACK;
-    ack->content = "1";
+    ack->type = op;
+    ack->content = content;
     ack->encodeMessage();
-    printf("[BS] Send ack : %s", ack->message);
-    //std::cout << ack->root<< std::endl;
+    printf("[BS] Send to %d : %s\n", client->getSockfd(), ack->message);
     send(client->getSockfd(), ack->message, strlen(ack->message), 0);
     delete ack;
-    return true;
 }
 
 void BaseServer::process_message(ClientStatus *client, const char* buf)
@@ -185,6 +192,11 @@ void BaseServer::process_message(ClientStatus *client, const char* buf)
         register_user(client, msg->content);
         break;
     case CLIENT_MSG_WORD:
+        break;
+    case CLIENT_MSG_SEARCH:
+        string str = db->getAllUsers();
+        printf("[BS] All users : %s\n", str.c_str());
+        sendResponse(client, msg->type, str);
         break;
     }
 

@@ -10,6 +10,11 @@
 #include "clientconfig.h"
 using namespace std;
 
+int decodeCMD(std::string cmd)
+{
+    if ((int)cmd.find("search") > -1) return CLIENT_MSG_SEARCH;
+}
+
 bool doRegister(BaseClient *bc)
 {
     printf("| Registering.\n");
@@ -54,7 +59,7 @@ int main()
     while(true)
     {
         state = 0;
-        
+        cout << ">> ";
         // First : login or register
         while(true)
         {

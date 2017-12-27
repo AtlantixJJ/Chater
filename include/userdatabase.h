@@ -19,10 +19,12 @@ public:
 
     void writeToFile();
 
-    bool loginVerify(string account, string passwd);
-    
-    void registerUser(string account, string passwd);
+    void setStatus(string account, int status);
+    string getAllUsers();
+    bool loginVerify(string account, string passwd);    
+    void registerUser(string account, string passwd, string name);
     string findUser(string account);
+
 private:
     void fromJson();
     void toJson();
