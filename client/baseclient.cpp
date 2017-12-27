@@ -97,8 +97,7 @@ bool BaseClient::process_response(int op, string content)
     {
     case CLIENT_MSG_SEARCH:
         all_users.clear();
-        Json::Value node;std::istringstream stream(content);stream >> node;
-        for(auto item : node) all_users.push_back(item["account"].asString());
+        Json::Value node;std::istringstream stream(content);stream >> all_users;
         break;
     }
     

@@ -29,8 +29,8 @@ public:
     ClientConfig* getClientConfig() {return cc;}
 
 public:
-    vector<string> friends;
-    vector<string> all_users;
+    Json::Value friends;
+    Json::Value all_users;
 
 private:
     bool process_response(int op, string content);

@@ -21,7 +21,7 @@ void Message::encodeMessage()
     wbuilder["indentation"] = ""; // No identation for message encoding
     message_c = Json::writeString(wbuilder, root) + "\n\n\0\0";
     message = message_c.c_str();
-    printf("Msg : %s\n", message);
+    //printf("Msg : %s\n", message);
 }
 
 void Message::decodeMessage()
