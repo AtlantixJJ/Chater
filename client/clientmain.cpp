@@ -37,8 +37,8 @@ bool serve(BaseClient *bc)
         case CLIENT_MSG_SEARCH:
             cout << " | Request to search all users." << endl;
             if(bc->sendRequest(op)) {
-                for(auto name : bc->all_users)
-                    cout << name << endl;
+                for(auto user : bc->all_users)
+                    cout << user << endl;
             } else
                 cout << " | Search request failed." << endl;
             break;

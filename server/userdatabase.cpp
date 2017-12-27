@@ -37,14 +37,15 @@ void UserDataBase::writeToFile()
 bool UserDataBase::loginVerify(string account, string passwd)
 {
     //cout << account << " " << passwd << endl;
-    if (root[account]["passwd"].asString() == passwd)
+    if (!root[account].isNull())
+        if (root[account]["passwd"].asString() == passwd)
             return true;
     return false;
 }
 
 void UserDataBase::setStatus(string account, int status)
 {
-    //cout << root[account] << endl;
+    cout << root[account] << endl;
     if (!root[account].isNull())
         root[account]["status"] = Json::Value(status);
 }

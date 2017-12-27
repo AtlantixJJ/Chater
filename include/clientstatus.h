@@ -27,7 +27,7 @@ public:
         server_interface = si;
     }
 
-    void verified(string ac) {status = CLIENT_VERIFITED; account = ac.c_str();}
+    void verified(string ac);
     //void unverified(string ac) {status = CLIENT_OFFLINE; account = ac;}
     BaseServer* getServerInterface() {return server_interface;}
 

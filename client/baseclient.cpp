@@ -24,10 +24,10 @@ bool BaseClient::connectServer()
     addr.sin_addr.s_addr = inet_addr(sc->getServerIP());
     if (connect(sockfd,(sockaddr*)&addr,sizeof(addr)) == -1)
     {
-        printf("[BC] Connecting to server failed.\n");
+        _vb(printf("[BC] Connecting to server failed.\n"));
         return false;
     }
-    printf("[BC] Connection established.\n");
+    _vb(printf("[BC] Connection established.\n"));
     return true;
 }
 
@@ -86,7 +86,7 @@ bool BaseClient::sendRequest(int op)
     
     msg->fromBuffer(buf);
     msg->decodeMessage();
-    printf("[BC] Response : %s\n", msg->message);
+    _vb(printf("[BC] Response : %s\n", msg->message));
     
     return process_response(op, msg->content);
 }
@@ -96,8 +96,18 @@ bool BaseClient::process_response(int op, string content)
     switch(op)
     {
     case CLIENT_MSG_SEARCH:
-        all_users.clear();
-        Json::Value node;std::istringstream stream(content);stream >> all_users;
+        all_users.clear();std::istringstream stream(content);stream >> all_users;
+        for (auto key : all_users.getMemberNames())
+        {
+            string trans;
+            switch(all_users[key]["status"].asInt())
+            {
+            case 1: trans = "Online";break;
+            case 2: trans = "Verified";break;
+            case 3: trans = "Offline";break;
+            }
+            all_users[key]["status"] = trans; 
+        }
         break;
     }
     

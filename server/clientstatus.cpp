@@ -16,3 +16,10 @@ void ClientStatus::disconnected()
     }
     printf("[CS] %s Disconnected.\n", account.c_str());
 }
+
+void ClientStatus::verified(string ac)
+{
+    status = CLIENT_VERIFITED;
+    account = ac;
+    server_interface->db->setStatus(account, CLIENT_VERIFITED);
+}

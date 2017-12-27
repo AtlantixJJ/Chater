@@ -2,6 +2,7 @@
 #define BASECLIENT_H_
 
 #include "common.h"
+#include "clientutils.h"
 #include "serverconfig.h"
 #include "clientconfig.h"
 #include <sys/socket.h>
