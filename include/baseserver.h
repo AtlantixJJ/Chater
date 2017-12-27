@@ -5,6 +5,8 @@
 #include "clientstatus.h"
 #include "userdatabase.h"
 #include "serverconfig.h"
+#include "cryptofile.h"
+
 using namespace std;
 
 class ClientStatus;

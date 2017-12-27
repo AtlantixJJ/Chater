@@ -75,15 +75,21 @@ bool BaseClient::register_account()
         return false;
 }
 
-void BaseClient::sendMessage(int op, string content)
+void BaseClient::sendMessage(int op, const string& content)
 {
     Message *msg = new Message();
     msg->type = op;
     msg->content = content;
     msg->encodeMessage();
-    printf(" | [BC] Send %s\n", msg->message);
+    _vb(printf(" | [BC] Send %s\n", msg->message));
     send(sockfd, msg->message, strlen(msg->message), 0);
     delete msg;
+}
+
+void BaseClient::sendMessage(const char *buf, int len)
+{
+    _vb(printf(" | [BC] Send %s\n", buf));
+    send(sockfd, buf, len, 0);
 }
 
 bool BaseClient::sendRequest(int op, string content)
@@ -102,7 +108,7 @@ bool BaseClient::sendRequest(int op, string content)
 /// Usually a string or a JSON in decision message
 void BaseClient::process_response(int op, string content)
 {
-    cout << " | [BC] Process : "<< content <<endl;
+    _vb(cout << " | [BC] Process : "<< content <<endl);
     bool flag;
     Json::Value respond;
     DecisionMessage *dmsg = new DecisionMessage();
@@ -117,7 +123,7 @@ void BaseClient::process_response(int op, string content)
     {
     // Recv message of word
     case CLIENT_MSG_WORD:
-        cout << peer_ac << " : " << endl << content << endl;
+        cout << all_users[peer_ac]["name"] << " : " << endl << content << endl;
         break;
     // Recv content is account of peer
     case CLIENT_MSG_CHAT:
@@ -174,8 +180,10 @@ void BaseClient::process_response(int op, string content)
         if (dmsg->dec == "1") {
             friends[dmsg->account] = all_users[dmsg->account];
             flag = true;
-        } else if (dmsg->dec == "2") printf(" | [BC] Peer not online.\n"), flag = false;
-        else flag = false;
+        } else if (dmsg->dec == "2") {
+            printf(" | [BC] Peer not online.\n");
+            flag = false;
+        } else flag = false;
         break;
     }
     
@@ -222,8 +230,24 @@ void BaseClient::start_recv()
 int BaseClient::decodeChatCMD(char *buf)
 {
     if (buf[0] == 's') return CLIENT_CMD_CHATMSG;
-    if (buf[0] == 'f') return CLIENT_CMD_FILESEND;
+    if (buf[0] == 'f') return CLIENT_CMD_SENDFILE;
     if (buf[0] == 'e') return CLIENT_CMD_EXIT;
+}
+
+void BaseClient::sendFile(string fname)
+{
+    CryptoFile cy;
+    char *p = cy.encodeFile(fname);
+    Json::Value msg_json;
+    msg_json["type"]     = Json::Value(CLIENT_MSG_FILE      );
+    msg_json["content"]  = Json::Value(p                    );
+
+    std::ostringstream stream;
+    Json::StreamWriterBuilder wbuilder;
+    wbuilder["indentation"] = ""; // No identation for message encoding
+    std::string document = Json::writeString(wbuilder, msg_json) + "\n\n\0\0";
+
+    sendMessage(document.c_str(), document.length());
 }
 
 void BaseClient::start_chat()
@@ -239,9 +263,14 @@ void BaseClient::start_chat()
         switch(op)
         {
         case CLIENT_CMD_CHATMSG:
+            cout << cc->getName() << " : " << endl;
+            cout << buf + 2 << endl;
             sendMessage(CLIENT_MSG_WORD, string(buf+2));
             break;
-        case CLIENT_CMD_FILESEND:
+        case CLIENT_CMD_SENDFILE:
+            /// TODO: decide if the file exist
+            cout << cc->getName() << " : [Send File] " << buf + 2 << endl;
+            sendFile(buf+2);
             break;
         case CLIENT_CMD_EXIT:
             sendMessage(CLIENT_MSG_CLOSECHAT, "");

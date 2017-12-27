@@ -3,7 +3,7 @@
 
 #include "json/json.h"
 
-const int VERBOSE = 1;
+const int VERBOSE = 0;
 
 #define _vb(x) if(VERBOSE) x;
 

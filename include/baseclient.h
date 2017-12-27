@@ -5,11 +5,7 @@
 #include "clientutils.h"
 #include "serverconfig.h"
 #include "clientconfig.h"
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <pthread.h>
-#include <unistd.h>
+#include "cryptofile.h"
 
 class BaseClient
 {
@@ -24,7 +20,9 @@ public:
     bool login();
     bool register_account();
     bool sendRequest(int op, string content);
-    void sendMessage(int op, string content);
+    void sendMessage(int op, const string& content);
+    void sendMessage(const char *buf, int len);
+    void sendFile(string fname);
     void start_recv();
     void start_chat();
 
