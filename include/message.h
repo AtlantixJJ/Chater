@@ -13,8 +13,8 @@ public:
 
     void fromBuffer(const char *buf);
 
-    virtual void encodeMessage();
-    virtual void decodeMessage();
+    void encodeMessage();
+    void decodeMessage();
 
 public:
     int type;
@@ -36,8 +36,8 @@ public:
     DecisionMessage(string ac, string dec);
     DecisionMessage(string ac, const char* dec);
 
-    virtual void encodeMessage();
-    virtual void decodeMessage();
+    void encodeMessage();
+    void decodeMessage();
 
     void setDecision(string ac, string dec);
     void setDecision(string ac, const char* dec);

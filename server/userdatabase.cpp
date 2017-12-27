@@ -32,7 +32,7 @@ void UserDataBase::recheck()
     for(auto key : root.getMemberNames())
     {
         root[key]["status"] = Json::Value(CLIENT_OFFLINE);
-        root[key]["peer"]   = Json::Value(""            );
+        root[key]["peer"]   = Json::Value("{}"          );
     }
 }
 
@@ -50,6 +50,14 @@ bool UserDataBase::loginVerify(string account, string passwd)
         if (root[account]["passwd"].asString() == passwd)
             return true;
     return false;
+}
+
+void UserDataBase::setPeer(string account, string peer_ac, ClientStatus *cc)
+{
+    Json::Value PeerNode;
+    PeerNode["account"] = Json::Value(peer_ac);
+    PeerNode["status"]  = Json::Value((long long)cc);
+    root[account]["peer"] = PeerNode;
 }
 
 void UserDataBase::setStatus(string account, int status, ClientStatus *cc)

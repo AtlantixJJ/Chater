@@ -91,6 +91,7 @@ void Message::decodeMessage()
 {
     istringstream stream(message);
     stream >> root;
+    cout << root << endl;
     fromJson();
 }
 

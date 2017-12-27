@@ -24,6 +24,7 @@ public:
 
     void recheck();
 
+    void setPeer(string account, string peer_ac, ClientStatus *cc);
     void setStatus(string account, int status, ClientStatus *cc);
     string getAllUsers();
     const Json::Value& getRoot() const {return root;}

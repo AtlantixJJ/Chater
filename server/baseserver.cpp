@@ -187,11 +187,13 @@ bool BaseServer::register_user(ClientStatus *client, std::string content)
 
 void BaseServer::sendMessage(ClientStatus *client, int op, std::string content)
 {
+    //cout << "S " << op << " " << content << endl;
     Message *ack = new Message();
     ack->type = op;
     ack->content = content;
+
     ack->encodeMessage();
-    cout << (long long)client << " " << op << " " << content << endl;
+
     printf("[BS] Send to %d : %s\n", client->getSockfd(), ack->message);
     send(client->getSockfd(), ack->message, strlen(ack->message), 0);
     delete ack;
@@ -219,7 +221,7 @@ void BaseServer::process_message(ClientStatus *client, const char* buf)
         break;
     case CLIENT_MSG_WORD:
         peer = db->getRoot()[client->getAccount()]["peer"];
-        peer_cc = (ClientStatus*)peer["client_status"].asInt64();
+        peer_cc = (ClientStatus*)peer["status"].asInt64();
         sendMessage(peer_cc, CLIENT_MSG_WORD, msg->content);
         break;
     // content is peer name
@@ -254,7 +256,14 @@ void BaseServer::process_message(ClientStatus *client, const char* buf)
 
         if (peer_cc != NULL && peer["status"].asInt() == CLIENT_VERIFIED)
         {
-            dmsg->setDecision(client->getAccount(), "1");
+            if(dmsg->dec == "1") {
+                // set peer relation in DB
+                db->setPeer(dmsg->account, client->getAccount(), client);
+                db->setPeer(client->getAccount(), dmsg->account, peer_cc);
+                dmsg->setDecision(client->getAccount(), "1");
+            } else
+                dmsg->setDecision(client->getAccount(), "0");
+                
             dmsg->encodeMessage();
             sendMessage(peer_cc, CLIENT_MSG_RESADD, dmsg->message);
         }
@@ -264,4 +273,5 @@ void BaseServer::process_message(ClientStatus *client, const char* buf)
     }
 
     delete msg;
+    delete dmsg;
 }
