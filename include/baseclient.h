@@ -29,17 +29,19 @@ public:
     void start_chat();
 
     ClientConfig* getClientConfig() {return cc;}
-
+    bool isChatting() const {return is_chatting;}
 public:
+    string peer_ac;
     Json::Value friends;
     Json::Value all_users;
 
 private:
-    
+    static int decodeChatCMD(char *buf);
     void process_response(int op, string content);
     static void* recv_thread(void *p);
 
 private:
+    bool is_chatting;
     int process_state;
 
     ServerConfig *sc;

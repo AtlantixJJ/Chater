@@ -31,11 +31,17 @@ const int CLIENT_MSG_RESADD     = CLIENT_MSG_APPADD + 1;
 
 // Start chatting with a friend
 const int CLIENT_MSG_CHAT       = CLIENT_MSG_RESADD + 1;
+const int CLIENT_MSG_CLOSECHAT  = CLIENT_MSG_CHAT + 1;
 
-const int CLIENT_CMD_LIST       = CLIENT_MSG_RESADD + 1;
+const int CLIENT_CMD_LIST       = CLIENT_MSG_CLOSECHAT + 1;
 const int CLIENT_CMD_EXIT       = CLIENT_CMD_LIST + 1;
-const int CLIENT_CMD_CHAT       = CLIENT_CMD_CHAT + 1;
-const int SERVER_CMD_LISTDB     = CLIENT_CMD_CHAT + 1;
+const int CLIENT_CMD_CHAT       = CLIENT_CMD_EXIT + 1;
+const int CLIENT_CMD_CHATMSG    = CLIENT_CMD_CHAT+1;
+const int CLIENT_CMD_FILESEND   = CLIENT_CMD_CHATMSG + 1;
+const int CLIENT_CMD_RECVPASTMSG= CLIENT_CMD_FILESEND + 1;
+const int CLIENT_CMD_RECVPASTFILE=CLIENT_CMD_RECVPASTMSG + 1;
+
+const int SERVER_CMD_LISTDB     = CLIENT_CMD_RECVPASTFILE + 1;
 
 inline void exitError(const char *msg)
 {

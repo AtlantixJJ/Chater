@@ -218,6 +218,15 @@ void BaseServer::process_message(ClientStatus *client, const char* buf)
         register_user(client, msg->content);
         break;
     case CLIENT_MSG_WORD:
+        peer = db->getRoot()[client->getAccount()]["peer"];
+        peer_cc = (ClientStatus*)peer["client_status"].asInt64();
+        sendMessage(peer_cc, CLIENT_MSG_WORD, msg->content);
+        break;
+    // content is peer name
+    case CLIENT_MSG_CHAT:
+        peer = db->findUser(msg->content);
+        peer_cc = (ClientStatus*)peer["client_status"].asInt64();
+        sendMessage(peer_cc, CLIENT_MSG_CHAT, client->getAccount());
         break;
     case CLIENT_MSG_SEARCH:
         str = db->getAllUsers();

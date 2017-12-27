@@ -67,14 +67,16 @@ bool requestAddFriend(BaseClient *bc, string account)
     return flag;
 }
 
-void start_chat(string account, BaseClient *bc)
+void start_chat(BaseClient *bc, string account)
 {
-    if (bc->friend[account].isNull()) {
+    if (bc->friends[account].isNull()) {
         printf(" | [CMD] Friend [ %s ] not found", account.c_str());
         return;
     }
 
     bc->sendMessage(CLIENT_MSG_CHAT, account.c_str());
+
+    bc->peer_ac = account;
 
     bc->start_chat();
 }
@@ -95,14 +97,16 @@ bool serve(BaseClient *bc)
     int op;
     bool valid;
 
-    cout << " | [CMD] Hi [ " << bc->getClienConfig()->getName() <<
-        << " ], account [ " << bc->getClienConfig()->getAccount() << " ]\n";
+    cout << " | [CMD] Hi [ " << bc->getClientConfig()->getName() <<
+        " ], account [ " << bc->getClientConfig()->getAccount() << " ]\n";
 
     while(true)
     {
         cout << ">> ";
         cin >> cmd;
         op = decodeCMD(cmd);
+
+        if(bc->isChatting()) bc->start_chat();
 
         switch(op)
         {

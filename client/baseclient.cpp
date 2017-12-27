@@ -115,6 +115,15 @@ void BaseClient::process_response(int op, string content)
 
     switch(op)
     {
+    // Recv message of word
+    case CLIENT_MSG_WORD:
+        cout << peer_ac << " : " << endl << content << endl;
+        break;
+    // Recv content is account of peer
+    case CLIENT_MSG_CHAT:
+        peer_ac = content;
+        is_chatting = true;
+        break;
     // the server send search response back
     case CLIENT_MSG_SEARCH:
         all_users.clear();
@@ -209,12 +218,36 @@ void BaseClient::start_recv()
     pthread_create(&id, 0, recv_thread, (void*)cs);
 }
 
+// s, f, e
+int BaseClient::decodeChatCMD(char *buf)
+{
+    if (buf[0] == 's') return CLIENT_CMD_CHATMSG;
+    if (buf[0] == 'f') return CLIENT_CMD_FILESEND;
+    if (buf[0] == 'e') return CLIENT_CMD_EXIT;
+}
+
 void BaseClient::start_chat()
 {
     char buf[4096];
+    int op;
 
     while(true)
     {
-        //cin.getline(buf)
+        cin.getline(buf, 4096);
+        op = BaseClient::decodeChatCMD(buf);
+
+        switch(op)
+        {
+        case CLIENT_CMD_CHATMSG:
+            sendMessage(CLIENT_MSG_WORD, string(buf+2));
+            break;
+        case CLIENT_CMD_FILESEND:
+            break;
+        case CLIENT_CMD_EXIT:
+            sendMessage(CLIENT_MSG_CLOSECHAT, "");
+            return;
+            break;    
+        }
+
     }
 }
