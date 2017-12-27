@@ -88,7 +88,7 @@ void UserDataBase::registerUser(string account, string passwd, string name)
     node["passwd"]        = Json::Value(passwd)             ;
     node["off_msg"]       = Json::Value("{}")               ;
 
-    node["status"]        = Json::Value(CLIENT_VERIFITED)   ;
+    node["status"]        = Json::Value(CLIENT_VERIFIED)   ;
 
     // chat peer
     node["peer"]          = Json::Value("")                 ;

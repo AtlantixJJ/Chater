@@ -9,11 +9,7 @@ ClientConfig::ClientConfig():
 
 ClientConfig::ClientConfig(string fname)
 {
-    file_name = fname;
-    std::ifstream fin(fname);
-    fin >> root;
-    cout << root <<endl;
-    setFieldValueFromJson();
+    fromFile(fname);
 }
 
 void ClientConfig::setFieldValueFromJson()
@@ -48,4 +44,13 @@ string ClientConfig::getLoginContent()
     std::string document = Json::writeString(wbuilder, root) + "\n\n\0\0";
 
     return document;
+}
+
+void ClientConfig::fromFile(string fname)
+{
+    file_name = fname;
+    std::ifstream fin(fname);
+    fin >> root;
+
+    setFieldValueFromJson();
 }

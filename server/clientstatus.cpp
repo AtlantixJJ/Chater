@@ -19,7 +19,7 @@ void ClientStatus::disconnected()
 
 void ClientStatus::verified(string ac)
 {
-    status = CLIENT_VERIFITED;
+    status = CLIENT_VERIFIED;
     account = ac;
-    server_interface->db->setStatus(account, CLIENT_VERIFITED, this);
+    server_interface->db->setStatus(account, CLIENT_VERIFIED, this);
 }

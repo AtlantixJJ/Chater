@@ -27,7 +27,7 @@ public:
 private:
     bool verify_passwd(ClientStatus *client, std::string content);
     bool register_user(ClientStatus *client, std::string content);
-    void sendResponse(ClientStatus *client, int op, std::string content);
+    void sendMessage(ClientStatus *client, int op, std::string content);
 private:
     bool init();
     bool start_socket();

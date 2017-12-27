@@ -13,8 +13,8 @@
 #include "json/json.h"
 
 const int CLIENT_ONLINE     = 1;
-const int CLIENT_VERIFITED  = CLIENT_ONLINE + 1;
-const int CLIENT_OFFLINE    = CLIENT_VERIFITED + 1;
+const int CLIENT_VERIFIED  = CLIENT_ONLINE + 1;
+const int CLIENT_OFFLINE    = CLIENT_VERIFIED + 1;
 const int CLIENT_UNINIT     = CLIENT_OFFLINE + 1;
 const int RECV_READY        = CLIENT_UNINIT + 1;
 
@@ -23,15 +23,19 @@ const int CLIENT_MSG_REGISTER   = CLIENT_MSG_WORD + 1;
 const int CLIENT_MSG_LOGIN      = CLIENT_MSG_REGISTER + 1;
 const int CLIENT_MSG_ACK        = CLIENT_MSG_LOGIN + 1;
 const int CLIENT_MSG_SEARCH     = CLIENT_MSG_ACK + 1;
+
 // Application for adding a friend
 const int CLIENT_MSG_APPADD     = CLIENT_MSG_SEARCH + 1;
 // Response for friend application 
 const int CLIENT_MSG_RESADD     = CLIENT_MSG_APPADD + 1;
 
+// Start chatting with a friend
+const int CLIENT_MSG_CHAT       = CLIENT_MSG_RESADD + 1;
+
 const int CLIENT_CMD_LIST       = CLIENT_MSG_RESADD + 1;
-
-
-const int SERVER_CMD_LISTDB     = CLIENT_CMD_LIST + 1;
+const int CLIENT_CMD_EXIT       = CLIENT_CMD_LIST + 1;
+const int CLIENT_CMD_CHAT       = CLIENT_CMD_CHAT + 1;
+const int SERVER_CMD_LISTDB     = CLIENT_CMD_CHAT + 1;
 
 inline void exitError(const char *msg)
 {

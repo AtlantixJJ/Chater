@@ -13,8 +13,8 @@ public:
 
     void fromBuffer(const char *buf);
 
-    void encodeMessage();
-    void decodeMessage();
+    virtual void encodeMessage();
+    virtual void decodeMessage();
 
 public:
     int type;
@@ -23,10 +23,34 @@ public:
     /// TODO: should not be public
     const char* message;
     Json::Value root;
-private:
+protected:
     std::string message_c;
     void toJson();
     void fromJson();
+};
+
+class DecisionMessage : public Message
+{
+public:
+    DecisionMessage();
+    DecisionMessage(string ac, string dec);
+    DecisionMessage(string ac, const char* dec);
+
+    virtual void encodeMessage();
+    virtual void decodeMessage();
+
+    void setDecision(string ac, string dec);
+    void setDecision(string ac, const char* dec);
+    string account;
+    string dec;
+
+protected:
+    void toJson();
+    void fromJson();
+
+protected:
+    Json::Value dec_json;
+
 };
 
 #endif

@@ -15,13 +15,78 @@ int decodeCMD(std::string cmd)
     if ((int)cmd.find("search") > -1) return CLIENT_MSG_SEARCH;
     if ((int)cmd.find("ls") > -1) return CLIENT_CMD_LIST;
     if ((int)cmd.find("add") > -1) return CLIENT_MSG_APPADD;
+    if ((int)cmd.find("chat") > -1) return CLIENT_CMD_CHAT;
+    if ((int)cmd.find("exit") > -1) return CLIENT_CMD_EXIT;
 }
 
 bool doRegister(BaseClient *bc)
 {
-    printf("| Registering.\n");
+    printf(" | [CMD] Registering.\n");
     bool flag = bc->register_account();
     return flag;
+}
+
+bool requestUserList(BaseClient *bc)
+{
+    cout << " | [CMD] Request to search all users." << endl;
+
+    if(bc->sendRequest(CLIENT_MSG_SEARCH, ""))
+    {
+        for (auto key : bc->all_users.getMemberNames())
+            cout << key << " : " << bc->all_users[key] << endl;
+        return true;
+    }
+    else
+    {
+        cout << " | [CMD] Search request failed." << endl;
+        return false;
+    }
+}
+
+bool requestAddFriend(BaseClient *bc, string account)
+{
+    cout << " | [CMD] Apply to add " << account << endl;
+    bool valid = !bc->all_users[account].isNull();
+    bool flag = true;
+    if(!valid)
+    {
+        cout << " | [CMD] User not found, request terminated." << endl;
+        flag = false;
+    }
+    else if(bc->sendRequest(CLIENT_MSG_APPADD, account))
+    {
+        cout << " | [CMD] Application accepted, friend " << account << " added" << endl;
+        bc->friends[account] = bc->all_users[account];
+        flag = true;
+    }
+    else
+    {
+        cout << " | [CMD] Application rejected." << endl;
+        flag = false;
+    }
+    return flag;
+}
+
+void start_chat(string account, BaseClient *bc)
+{
+    if (bc->friend[account].isNull()) {
+        printf(" | [CMD] Friend [ %s ] not found", account.c_str());
+        return;
+    }
+
+    bc->sendMessage(CLIENT_MSG_CHAT, account.c_str());
+
+    bc->start_chat();
+}
+
+/// Request some necessary information from server
+bool init(BaseClient *bc)
+{
+    bool flag;
+    //sleep(100);
+    bc->start_recv();
+    flag = requestUserList(bc);
+    return true;
 }
 
 bool serve(BaseClient *bc)
@@ -30,7 +95,8 @@ bool serve(BaseClient *bc)
     int op;
     bool valid;
 
-    bc->start_recv();
+    cout << " | [CMD] Hi [ " << bc->getClienConfig()->getName() <<
+        << " ], account [ " << bc->getClienConfig()->getAccount() << " ]\n";
 
     while(true)
     {
@@ -40,29 +106,23 @@ bool serve(BaseClient *bc)
 
         switch(op)
         {
-        case CLIENT_MSG_SEARCH:
-            cout << " | Request to search all users." << endl;
-            if(bc->sendRequest(op)) {
-                for (auto key : bc->all_users.getMemberNames())
-                    cout << key << " " << bc->all_users[key] << endl;
-            } else
-                cout << " | Search request failed." << endl;
-            break;
+        case CLIENT_MSG_SEARCH: requestUserList(bc); break;
         case CLIENT_CMD_LIST:
-            for (auto user : bc->friends)
-                cout << user << endl;
+            cout << " | [CMD] Friends list: " << endl;
+            for (auto key : bc->friends.getMemberNames())
+                cout << key << " : " << bc->friends[key] << endl;
             break;
         case CLIENT_MSG_APPADD:
             cin >> arg1;
-            cout << " | Apply to add " << arg1 << endl;
-            valid = !bc->all_users[arg1].isNull();
-            if(!valid) cout << " | User not found, request terminated." << endl;
-            else if(bc->sendRequest(op))
-            {
-                cout << " | Application accepted, friend " << arg1 << " added" << endl;
-                bc->friends[arg1] = bc->all_users[arg1];
-            }
-            else cout << " | Application rejected." << endl;
+            requestAddFriend(bc, arg1);
+            break;
+        case CLIENT_CMD_CHAT:
+            cin >> arg1;
+            start_chat(bc, arg1);
+            break;
+        case CLIENT_CMD_EXIT:
+            cout << " | [CMD] Exit login." << endl;
+            return true;
             break;
         }
         
@@ -74,21 +134,28 @@ int main()
     BaseClient *bc = new BaseClient("server_config.json", "client_config.json");
     string cmd, arg1, arg2, arg3;
     bool ctrl_flag[64];
+    char buf[32];
     int state = 0;
 
-    printf("| Simple client by 2015011313.\n");
+    printf(" | [CMD] Simple client by 2015011313.\n");
 
     while(true)
     {
         state = 0;
-        cout << ">> ";
         // First : login or register
         while(true)
         {
+            cout << ">> ";
             cin >> cmd;
             //cout << (int)cmd.find("fastlogin") << " " << (int)cmd.find("login") <<endl;
-            if ((int)cmd.find("fl") > -1) break;
-            else if ((int)cmd.find("login") > -1) {
+            if ((int)cmd.find("fl") > -1) {
+                string tmp = "client";
+                buf[0] = cmd[2]; buf[1] = '\0';
+                tmp += buf; tmp += "_config.json";
+                cout << " | [CMD] Using " << tmp << " as configuration file." << endl;
+                bc->getClientConfig()->fromFile(tmp);
+                break;
+            } else if ((int)cmd.find("login") > -1) {
                 cin >> arg1 >> arg2 >> arg3;
                 bc->getClientConfig()->account = arg1;
                 bc->getClientConfig()->passwd = arg2;
@@ -99,39 +166,41 @@ int main()
                 bc->getClientConfig()->account = arg1;
                 bc->getClientConfig()->passwd = arg2;
                 bc->getClientConfig()->name = arg3;
-                printf("| Connecting to server.\n");
+                printf(" | [CMD] Connecting to server.\n");
 
                 state ++;
                 ctrl_flag[state] = bc->connectServer();
                 if(!ctrl_flag[state])
                 {
-                    printf("| Connection to server failed.\n");
+                    printf(" | [CMD] Connection to server failed.\n");
                     return 0;
                 }
                 doRegister(bc);
                 break;
             }
         }
-        printf("| Connecting to server.\n");
+        printf(" | [CMD] Connecting to server.\n");
 
         state ++;
         ctrl_flag[state] = bc->connectServer();
         if(!ctrl_flag[state])
         {
-            printf("| Connection to server failed.\n");
+            printf(" | [CMD] Connection to server failed.\n");
             return 0;
         }
-        printf("| Login to server.\n");
+        printf(" | [CMD] Login to server.\n");
         
         state ++;
         ctrl_flag[state] = bc->login();
         if(!ctrl_flag[state])
         {
-            printf("| Login to server failed.\n");
+            printf(" | [CMD] Login to server failed.\n");
             continue;
         }
 
-        printf("| Login ackwonledged.\n");
+        printf(" | [CMD] Login ackwonledged.\n");
+
+        init(bc);
 
         // The circulation of login state
         serve(bc);

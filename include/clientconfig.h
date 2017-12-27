@@ -18,10 +18,12 @@ public:
     ClientConfig();
     ClientConfig(string fname);
 
+    void fromFile(string fname);
+
     bool writeToFile();
     string getLoginContent();
     const char* getName()const{return name.c_str();}
-
+    const char* getAccount() const {return account.c_str();}
 private:
     void setFieldValueFromJson();
     void saveFieldValueToJson();

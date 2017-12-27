@@ -26,6 +26,8 @@ public:
 
     void setStatus(string account, int status, ClientStatus *cc);
     string getAllUsers();
+    const Json::Value& getRoot() const {return root;}
+    
     bool loginVerify(string account, string passwd);    
     void registerUser(string account, string passwd, string name);
     Json::Value findUser(string account);

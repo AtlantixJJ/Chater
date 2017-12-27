@@ -81,14 +81,16 @@ void BaseClient::sendMessage(int op, string content)
     msg->type = op;
     msg->content = content;
     msg->encodeMessage();
+    printf(" | [BC] Send %s\n", msg->message);
     send(sockfd, msg->message, strlen(msg->message), 0);
     delete msg;
 }
 
-bool BaseClient::sendRequest(int op)
+bool BaseClient::sendRequest(int op, string content)
 {
-    sendMessage(op, "");
+    sendMessage(op, content);
     process_state = -1;
+    usleep(10);
     // stuck until response is answered
     while(process_state == -1)
         usleep(1000);
@@ -96,13 +98,24 @@ bool BaseClient::sendRequest(int op)
     return (process_state == 1);
 }
 
+/// Content is the message content
+/// Usually a string or a JSON in decision message
 void BaseClient::process_response(int op, string content)
 {
+    cout << " | [BC] Process : "<< content <<endl;
     bool flag;
+    Json::Value respond;
+    DecisionMessage *dmsg = new DecisionMessage();
+    string spond;
+    string smd;
+    char cmd[128];
+
+    std::ostringstream sstream(spond);
     std::istringstream stream(content);
 
     switch(op)
     {
+    // the server send search response back
     case CLIENT_MSG_SEARCH:
         all_users.clear();
         stream >> all_users;
@@ -119,8 +132,40 @@ void BaseClient::process_response(int op, string content)
         }
         flag = true;
         break;
+    // the server send a application for friend
+    case CLIENT_MSG_APPADD:
+        while(true)
+        {
+            printf(" | [BC] New friend request from user [%s], [y]es/[n]o?\n", content.c_str());
+            scanf("%s", cmd);
+            // accept : add friend and send ack
+            if(cmd[0] == 'y' || cmd[0] == 'Y') {
+                printf(" | [BC] Accept new friend.\n");
+                friends[content] = all_users[content];
+                dmsg->setDecision(content, "1");
+                dmsg->encodeMessage();
+                sendMessage(CLIENT_MSG_RESADD, dmsg->message);
+                flag = true;
+            } 
+            else if (cmd[0] == 'n' || cmd[0] == 'N')
+            {
+                printf(" | [BC] Reject friend request.\n");
+                flag = false;
+                sendMessage(CLIENT_MSG_RESADD, "0");
+            }
+            else continue;
+            break;
+        }
+        break;
+    // the server send the result of application for friend back
     case CLIENT_MSG_RESADD:
-        if (content == "1") flag = true;
+        dmsg->fromBuffer(content.c_str());
+        dmsg->decodeMessage();
+        // Peer accepted, make new friends
+        if (dmsg->dec == "1") {
+            friends[dmsg->account] = all_users[dmsg->account];
+            flag = true;
+        } else if (dmsg->dec == "2") printf(" | [BC] Peer not online.\n"), flag = false;
         else flag = false;
         break;
     }
@@ -164,39 +209,12 @@ void BaseClient::start_recv()
     pthread_create(&id, 0, recv_thread, (void*)cs);
 }
 
-void BaseClient::start_communication()
+void BaseClient::start_chat()
 {
-    pthread_t id;
-    Message *msg = new Message();
-    RecvStatus *cs = new RecvStatus(sockfd, this);
+    char buf[4096];
 
-    pthread_create(&id, 0, recv_thread, (void*)cs);
-    char buf2[100] = {};
-    sprintf(buf2, "%s进入了聊天室", cc->getName());
-    send(sockfd, buf2, strlen(buf2), 0);
-    while(1)
+    while(true)
     {
-        char buf[1024] = {};
-        scanf("%s", buf);
-        
-        msg->type = CLIENT_MSG_WORD;
-        msg->content = buf;
-        msg->encodeMessage();
-        //printf("Encoded message : %s\n", msg->message);
-
-        send(sockfd, msg->message, strlen(msg->message), 0);
-
-        if (strcmp(buf, "bye") == 0)
-        {
-            memset(buf2, 0, sizeof(buf2));
-            sprintf(buf2, "%s退出了聊天室", cc->getName());
-            send(sockfd, buf2, strlen(buf2), 0);
-            break;
-        }
-
-        
+        //cin.getline(buf)
     }
-
-    delete msg;
-    close(sockfd);
 }

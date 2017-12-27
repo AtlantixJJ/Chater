@@ -23,9 +23,10 @@ public:
 
     bool login();
     bool register_account();
-    bool sendRequest(int op);
+    bool sendRequest(int op, string content);
+    void sendMessage(int op, string content);
     void start_recv();
-    void start_communication();
+    void start_chat();
 
     ClientConfig* getClientConfig() {return cc;}
 
@@ -34,7 +35,7 @@ public:
     Json::Value all_users;
 
 private:
-    void sendMessage(int op, string content);
+    
     void process_response(int op, string content);
     static void* recv_thread(void *p);
 

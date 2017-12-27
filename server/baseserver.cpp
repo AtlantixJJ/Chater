@@ -18,7 +18,7 @@ bool BaseServer::init()
 
     start_socket();
     pthread_t tid;
-    pthread_create(&tid, 0, cmdline_thread, (void*)(this))m;
+    pthread_create(&tid, 0, cmdline_thread, (void*)(this));
     return true;
 }
 
@@ -40,12 +40,11 @@ void* BaseServer::cmdline_thread(void *args)
         case SERVER_CMD_LISTDB:
             printf(" | [CMD] List current database:\n");
             printf(" | ----------------------------\n");
-            printf("%s\n | ----------------------------\n",
-                bs->getDataBase()->getAllUsers().c_str());
+            std::cout << bs->getDataBase()->getRoot() << std::endl 
+                << " | ----------------------------" << std::endl;
             break;
         default:
             printf(" | [CMD] Command \"%s\" not understand.\n", cmd.c_str());
-            break;
         }
     }
     return NULL;
@@ -155,29 +154,19 @@ bool BaseServer::start_socket()
 bool BaseServer::verify_passwd(ClientStatus *client, std::string content)
 {
     Json::Value node;std::istringstream stream(content);stream >> node;
-    std::cout << node <<std::endl;
-
     bool passed = db->loginVerify(node["account"].asString(), node["passwd"].asString());
-    Message *ack = new Message();
-    ack->type = CLIENT_MSG_ACK;
-
     if (!passed)
     {
-        ack->content = "0";
+        sendMessage(client, CLIENT_MSG_ACK, "0");
+        close(client->getSockfd());
         printf("[BS] Verification failed.\n");
     }
     else
     {
-        ack->content = "1";
+        sendMessage(client, CLIENT_MSG_ACK, "1");
         client->verified(node["account"].asString());
         printf("[BS] Verification succeed.\n");
     }
-
-    ack->encodeMessage();
-    printf("[BS] Send ack : %s\n", ack->message);
-    send(client->getSockfd(), ack->message, strlen(ack->message), 0);
-
-    delete ack;
 
     return true;
 }
@@ -189,18 +178,20 @@ bool BaseServer::register_user(ClientStatus *client, std::string content)
     db->registerUser(root["account"].asString(),
         root["passwd"].asString(), root["name"].asString());
 
-    sendResponse(client, CLIENT_MSG_ACK, "1");
+    sendMessage(client, CLIENT_MSG_ACK, "1");
 
     client->disconnected();
+    close(client->getSockfd());
     return true;
 }
 
-void BaseServer::sendResponse(ClientStatus *client, int op, std::string content)
+void BaseServer::sendMessage(ClientStatus *client, int op, std::string content)
 {
     Message *ack = new Message();
     ack->type = op;
     ack->content = content;
     ack->encodeMessage();
+    cout << (long long)client << " " << op << " " << content << endl;
     printf("[BS] Send to %d : %s\n", client->getSockfd(), ack->message);
     send(client->getSockfd(), ack->message, strlen(ack->message), 0);
     delete ack;
@@ -211,6 +202,7 @@ void BaseServer::process_message(ClientStatus *client, const char* buf)
     int i;
     Message *msg = new Message(buf);
     Json::Value peer;// = NULL;
+    DecisionMessage *dmsg = new DecisionMessage();
     ClientStatus *peer_cc = NULL;
     string str;
 
@@ -230,12 +222,35 @@ void BaseServer::process_message(ClientStatus *client, const char* buf)
     case CLIENT_MSG_SEARCH:
         str = db->getAllUsers();
         printf("[BS] All users : %s\n", str.c_str());
-        sendResponse(client, msg->type, str);
+        sendMessage(client, msg->type, str);
         break;
+    // A client apply to add friend
     case CLIENT_MSG_APPADD:
         peer = db->findUser(msg->content);
-        peer_cc = (ClientStatus*)peer["client_status"].asInt();
-        sendResponse(peer_cc, CLIENT_MSG_RESADD, client->getAccount());
+        peer_cc = (ClientStatus*)peer["client_status"].asInt64();
+        cout << "Content" << msg->content << "\nPeer: " << peer << endl;
+        if (peer_cc != NULL && peer["status"].asInt() == CLIENT_VERIFIED)
+            // send for acception
+            sendMessage(peer_cc, CLIENT_MSG_APPADD, client->getAccount());
+        else // 2 for client not online
+            sendMessage(client, CLIENT_MSG_RESADD, "2");
+        break;
+    // A client responses add friend request
+    case CLIENT_MSG_RESADD:
+        dmsg->fromBuffer(msg->content.c_str());
+        dmsg->decodeMessage();
+        peer = db->findUser(dmsg->account);
+        peer_cc = (ClientStatus*)peer["client_status"].asInt64();
+        cout << "dmsg " << dmsg->message << "\nPeer: " << peer << endl;
+
+        if (peer_cc != NULL && peer["status"].asInt() == CLIENT_VERIFIED)
+        {
+            dmsg->setDecision(client->getAccount(), "1");
+            dmsg->encodeMessage();
+            sendMessage(peer_cc, CLIENT_MSG_RESADD, dmsg->message);
+        }
+        else
+            printf(" | [BS] Peer not online.\n");
         break;
     }
 
