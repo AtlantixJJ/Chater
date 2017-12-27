@@ -27,6 +27,15 @@ void UserDataBase::toJson()
 
 }
 
+void UserDataBase::recheck()
+{
+    for(auto key : root.getMemberNames())
+    {
+        root[key]["status"] = Json::Value(CLIENT_OFFLINE);
+        root[key]["peer"]   = Json::Value(-1            );
+    }
+}
+
 void UserDataBase::writeToFile()
 {
     //toJson();

@@ -19,6 +19,8 @@ public:
 
     void writeToFile();
 
+    void recheck();
+
     void setStatus(string account, int status);
     string getAllUsers();
     bool loginVerify(string account, string passwd);    

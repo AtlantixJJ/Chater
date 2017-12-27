@@ -13,6 +13,7 @@
 int main ()
 {
     UserDataBase *db = new UserDataBase("DataBase.json");
+    db->recheck();
     BaseServer *server = new BaseServer("server_config.json");
     server->setDataBase(db);
     server->start_service();
