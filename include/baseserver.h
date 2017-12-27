@@ -8,6 +8,7 @@
 using namespace std;
 
 class ClientStatus;
+class UserDataBase;
 
 class BaseServer
 {
@@ -18,7 +19,7 @@ public:
     ~BaseServer();
 
     void setDataBase(UserDataBase *d){db=d;}
-
+    UserDataBase* getDataBase(){return db;}
     bool start_service();
 
     void process_message(ClientStatus *client, const char* buf);
@@ -30,6 +31,8 @@ private:
 private:
     bool init();
     bool start_socket();
+    static int decodeCMD(std::string cmd);
+    static void* cmdline_thread(void* args);
     static void* service_thread(void* args);
 
 private:

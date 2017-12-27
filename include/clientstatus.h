@@ -30,7 +30,7 @@ public:
     void verified(string ac);
     //void unverified(string ac) {status = CLIENT_OFFLINE; account = ac;}
     BaseServer* getServerInterface() {return server_interface;}
-
+    string getAccount()const{return account;}
     void disconnected();
     
     bool isOnline() const {return (status == CLIENT_ONLINE);}

@@ -13,6 +13,8 @@ using namespace std;
 int decodeCMD(std::string cmd)
 {
     if ((int)cmd.find("search") > -1) return CLIENT_MSG_SEARCH;
+    if ((int)cmd.find("ls") > -1) return CLIENT_CMD_LIST;
+    if ((int)cmd.find("add") > -1) return CLIENT_MSG_APPADD;
 }
 
 bool doRegister(BaseClient *bc)
@@ -26,6 +28,10 @@ bool serve(BaseClient *bc)
 {
     string cmd, arg1, arg2;
     int op;
+    bool valid;
+
+    bc->start_recv();
+
     while(true)
     {
         cout << ">> ";
@@ -37,10 +43,26 @@ bool serve(BaseClient *bc)
         case CLIENT_MSG_SEARCH:
             cout << " | Request to search all users." << endl;
             if(bc->sendRequest(op)) {
-                for(auto user : bc->all_users)
-                    cout << user << endl;
+                for (auto key : bc->all_users.getMemberNames())
+                    cout << key << " " << bc->all_users[key] << endl;
             } else
                 cout << " | Search request failed." << endl;
+            break;
+        case CLIENT_CMD_LIST:
+            for (auto user : bc->friends)
+                cout << user << endl;
+            break;
+        case CLIENT_MSG_APPADD:
+            cin >> arg1;
+            cout << " | Apply to add " << arg1 << endl;
+            valid = !bc->all_users[arg1].isNull();
+            if(!valid) cout << " | User not found, request terminated." << endl;
+            else if(bc->sendRequest(op))
+            {
+                cout << " | Application accepted, friend " << arg1 << " added" << endl;
+                bc->friends[arg1] = bc->all_users[arg1];
+            }
+            else cout << " | Application rejected." << endl;
             break;
         }
         

@@ -32,7 +32,7 @@ void UserDataBase::recheck()
     for(auto key : root.getMemberNames())
     {
         root[key]["status"] = Json::Value(CLIENT_OFFLINE);
-        root[key]["peer"]   = Json::Value(-1            );
+        root[key]["peer"]   = Json::Value(""            );
     }
 }
 
@@ -52,15 +52,19 @@ bool UserDataBase::loginVerify(string account, string passwd)
     return false;
 }
 
-void UserDataBase::setStatus(string account, int status)
+void UserDataBase::setStatus(string account, int status, ClientStatus *cc)
 {
     cout << root[account] << endl;
     if (!root[account].isNull())
+    {
         root[account]["status"] = Json::Value(status);
+        root[account]["client_status"] = Json::Value((long long)cc);
+    }
 }
 
-string UserDataBase::findUser(string account)
+Json::Value UserDataBase::findUser(string account)
 {
+    return root[account];
     /*
     char temp[32];
     for(int i = 0; i < root.size(); i++)
@@ -85,8 +89,9 @@ void UserDataBase::registerUser(string account, string passwd, string name)
     node["off_msg"]       = Json::Value("{}")               ;
 
     node["status"]        = Json::Value(CLIENT_VERIFITED)   ;
+
     // chat peer
-    node["peer"]          = Json::Value(-1)                 ;
+    node["peer"]          = Json::Value("")                 ;
 
     root[account] = node;
     writeToFile();

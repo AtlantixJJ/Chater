@@ -17,7 +17,38 @@ bool BaseServer::init()
     client_sockfd = new ClientStatus[sc->getMaxThread()];
 
     start_socket();
+    pthread_t tid;
+    pthread_create(&tid, 0, cmdline_thread, (void*)(this))m;
     return true;
+}
+
+int BaseServer::decodeCMD(std::string cmd)
+{
+    if((int)cmd.find("ld") > -1) return SERVER_CMD_LISTDB;
+}
+
+void* BaseServer::cmdline_thread(void *args)
+{
+    BaseServer *bs = (BaseServer*)args;
+    std::string cmd;
+
+    while(true)
+    {
+        std::cin >> cmd;
+        switch(BaseServer::decodeCMD(cmd))
+        {
+        case SERVER_CMD_LISTDB:
+            printf(" | [CMD] List current database:\n");
+            printf(" | ----------------------------\n");
+            printf("%s\n | ----------------------------\n",
+                bs->getDataBase()->getAllUsers().c_str());
+            break;
+        default:
+            printf(" | [CMD] Command \"%s\" not understand.\n", cmd.c_str());
+            break;
+        }
+    }
+    return NULL;
 }
 
 BaseServer::BaseServer(std::string config_fname)
@@ -179,6 +210,9 @@ void BaseServer::process_message(ClientStatus *client, const char* buf)
 {
     int i;
     Message *msg = new Message(buf);
+    Json::Value peer;// = NULL;
+    ClientStatus *peer_cc = NULL;
+    string str;
 
     printf("[BS] Recv : %s\n", msg->message);
     msg->decodeMessage();
@@ -194,9 +228,14 @@ void BaseServer::process_message(ClientStatus *client, const char* buf)
     case CLIENT_MSG_WORD:
         break;
     case CLIENT_MSG_SEARCH:
-        string str = db->getAllUsers();
+        str = db->getAllUsers();
         printf("[BS] All users : %s\n", str.c_str());
         sendResponse(client, msg->type, str);
+        break;
+    case CLIENT_MSG_APPADD:
+        peer = db->findUser(msg->content);
+        peer_cc = (ClientStatus*)peer["client_status"].asInt();
+        sendResponse(peer_cc, CLIENT_MSG_RESADD, client->getAccount());
         break;
     }
 

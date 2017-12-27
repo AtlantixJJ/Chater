@@ -33,14 +33,17 @@ bool BaseClient::connectServer()
 
 void* BaseClient::recv_thread(void* p){
     RecvStatus *ptr = (RecvStatus*)p;
-    while(1)
+    Message *msg = new Message();
+    char buf[4096] = {};
+    while(true)
     {
-        char buf[100] = {};
         if (recv(ptr->sockfd, buf, sizeof(buf), 0) <= 0){
-            return NULL;
+            exitError("[BC] Server closed.\n");
         }
-        printf("%s\n", buf);
-        sleep(1);
+        msg->fromBuffer(buf);
+        msg->decodeMessage();
+        ptr->client_interface->process_response(msg->type, msg->content);
+        usleep(1000);
     }
 }
 
@@ -72,31 +75,37 @@ bool BaseClient::register_account()
         return false;
 }
 
-bool BaseClient::sendRequest(int op)
+void BaseClient::sendMessage(int op, string content)
 {
     Message *msg = new Message();
-    char buf[4096];
-
     msg->type = op;
-    msg->content = "";
+    msg->content = content;
     msg->encodeMessage();
     send(sockfd, msg->message, strlen(msg->message), 0);
-    if(recv(sockfd, buf, sizeof(buf), 0) <= 0)
-        exitError("[BC] Recv response failed.\n");
-    
-    msg->fromBuffer(buf);
-    msg->decodeMessage();
-    _vb(printf("[BC] Response : %s\n", msg->message));
-    
-    return process_response(op, msg->content);
+    delete msg;
 }
 
-bool BaseClient::process_response(int op, string content)
+bool BaseClient::sendRequest(int op)
 {
+    sendMessage(op, "");
+    process_state = -1;
+    // stuck until response is answered
+    while(process_state == -1)
+        usleep(1000);
+
+    return (process_state == 1);
+}
+
+void BaseClient::process_response(int op, string content)
+{
+    bool flag;
+    std::istringstream stream(content);
+
     switch(op)
     {
     case CLIENT_MSG_SEARCH:
-        all_users.clear();std::istringstream stream(content);stream >> all_users;
+        all_users.clear();
+        stream >> all_users;
         for (auto key : all_users.getMemberNames())
         {
             string trans;
@@ -108,10 +117,16 @@ bool BaseClient::process_response(int op, string content)
             }
             all_users[key]["status"] = trans; 
         }
+        flag = true;
+        break;
+    case CLIENT_MSG_RESADD:
+        if (content == "1") flag = true;
+        else flag = false;
         break;
     }
     
-    return true;
+    if (flag) process_state = 1;
+    else process_state = 0;
 }
 
 bool BaseClient::login()
@@ -139,6 +154,14 @@ bool BaseClient::login()
         return true;
     else
         return false;
+}
+
+void BaseClient::start_recv()
+{
+    pthread_t id;
+    RecvStatus *cs = new RecvStatus(sockfd, this);
+
+    pthread_create(&id, 0, recv_thread, (void*)cs);
 }
 
 void BaseClient::start_communication()

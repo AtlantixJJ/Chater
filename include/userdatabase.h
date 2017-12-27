@@ -2,11 +2,14 @@
 #define USERDATABASE_H_
 
 #include "json/json.h"
+#include "clientstatus.h"
 #include <string.h>
 #include <iostream>
 #include <vector>
 #include <string.h>
 using namespace std;
+
+class ClientStatus;
 
 /**
  * Using JSON directly for user status control
@@ -21,11 +24,11 @@ public:
 
     void recheck();
 
-    void setStatus(string account, int status);
+    void setStatus(string account, int status, ClientStatus *cc);
     string getAllUsers();
     bool loginVerify(string account, string passwd);    
     void registerUser(string account, string passwd, string name);
-    string findUser(string account);
+    Json::Value findUser(string account);
 
 private:
     void fromJson();
