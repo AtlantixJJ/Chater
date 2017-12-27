@@ -13,6 +13,7 @@ UserDataBase::UserDataBase(std::string fname)
     file_name = fname;
     ifstream fin(file_name);
     fin >> root;
+    cout << root << endl;
 }
 
 void UserDataBase::fromJson()
@@ -40,21 +41,40 @@ void UserDataBase::writeToFile()
 
 bool UserDataBase::loginVerify(string account, string passwd)
 {
-    Json::Value s = root[account];
-
-    if (s == Json::Value())
-        return false;
-
-    if (s.asString() == passwd)
-        return true;
-    else
-        return false;
+    cout << account << " " << passwd << endl;
+    for(auto item : root)
+    {
+        cout << item["account"] << " " << item["passwd"] << endl;
+        if (item["account"].asString() == account &&
+            item["passwd"].asString() == passwd)
+            return true;
+    }
+    return false;
 }
 
-/// TODO : register exception
+string UserDataBase::findUser(string account)
+{
+    char temp[32];
+    for(int i = 0; i < root.size(); i++)
+    {
+        sprintf(temp, "%d", i);
+        Json::Value cur = root[temp];
+        if (cur["account"].asString() == account)
+            return string(temp);
+    }
+    sprintf(temp, "%d", root.size());
+    return string(temp);
+}
+
 void UserDataBase::registerUser(string account, string passwd)
 {
-    root[account]       = Json::Value(account)      ;
-    root[passwd]        = Json::Value(passwd)       ;
-    root["status"]      = Json::Value(CLIENT_ONLINE);
+    string key = findUser(account);
+
+    Json::Value node;
+    node["account"]       = Json::Value(account)            ;
+    node["passwd"]        = Json::Value(passwd)             ;
+    node["status"]        = Json::Value(CLIENT_VERIFITED)   ;
+    
+    root[key] = node;
+    writeToFile();
 }

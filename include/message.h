@@ -24,6 +24,7 @@ public:
     const char* message;
     Json::Value root;
 private:
+    std::string message_c;
     void toJson();
     void fromJson();
 };

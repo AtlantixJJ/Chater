@@ -21,6 +21,7 @@ public:
     bool connectServer();
 
     bool login();
+    bool register_account();
 
     void start_communication();
 

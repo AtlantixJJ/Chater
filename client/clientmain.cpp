@@ -10,6 +10,13 @@
 #include "clientconfig.h"
 using namespace std;
 
+bool doRegister(BaseClient *bc)
+{
+    printf("| Registering.\n");
+    bool flag = bc->register_account();
+    return flag;
+}
+
 int main()
 {
     BaseClient *bc = new BaseClient("server_config.json", "client_config.json");
@@ -18,7 +25,7 @@ int main()
     int state = 0;
 
     printf("| Simple client by 2015011313.\n");
-    
+
     while(true)
     {
         state = 0;
@@ -28,12 +35,28 @@ int main()
         {
             cin >> cmd;
             //cout << (int)cmd.find("fastlogin") << " " << (int)cmd.find("login") <<endl;
-            if ((int)cmd.find("fastlogin") > -1) break;
+            if ((int)cmd.find("fl") > -1) break;
             else if ((int)cmd.find("login") > -1) {
                 cin >> arg1 >> arg2 >> arg3;
                 bc->getClientConfig()->account = arg1;
                 bc->getClientConfig()->passwd = arg2;
                 bc->getClientConfig()->name = arg3;
+                break;
+            } else if ((int)cmd.find("reg") > -1) {
+                cin >> arg1 >> arg2 >> arg3;
+                bc->getClientConfig()->account = arg1;
+                bc->getClientConfig()->passwd = arg2;
+                bc->getClientConfig()->name = arg3;
+                printf("| Connecting to server.\n");
+
+                state ++;
+                ctrl_flag[state] = bc->connectServer();
+                if(!ctrl_flag[state])
+                {
+                    printf("| Connection to server failed.\n");
+                    return 0;
+                }
+                doRegister(bc);
                 break;
             }
         }
@@ -44,7 +67,7 @@ int main()
         if(!ctrl_flag[state])
         {
             printf("| Connection to server failed.\n");
-            continue;
+            return 0;
         }
         printf("| Login to server.\n");
         
@@ -58,7 +81,7 @@ int main()
 
         printf("| Login ackwonledged.\n");
 
-        bc->start_communication();
+        //bc->start_communication();
     }
     return 0;
 }

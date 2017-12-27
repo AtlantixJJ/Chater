@@ -19,8 +19,8 @@ void Message::encodeMessage()
     toJson();
     Json::StreamWriterBuilder wbuilder;
     wbuilder["indentation"] = ""; // No identation for message encoding
-    std::string document = Json::writeString(wbuilder, root);
-    message = document.c_str();
+    message_c = Json::writeString(wbuilder, root);
+    message = message_c.c_str();
     //printf("%s\n", message);
 }
 

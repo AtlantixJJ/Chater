@@ -44,10 +44,38 @@ void* BaseClient::recv_thread(void* p){
     }
 }
 
+bool BaseClient::register_account()
+{
+    Message *msg = new Message();
+    char buf[2048];
+
+    msg->type = CLIENT_MSG_REGISTER;
+    msg->content = cc->getLoginContent();
+    //printf("content:\n%s\n",msg->content.c_str());
+    msg->encodeMessage();
+    send(sockfd, msg->message, strlen(msg->message), 0);
+
+    // wait for ack
+    if(recv(sockfd, buf, sizeof(buf), 0) <= 0)
+        exitError("[BC] Recv Ack failed.\n");
+
+    printf("| Ack message recv : %s\n", buf);
+
+    msg->fromBuffer(buf);
+    msg->decodeMessage();
+    if(msg->type != CLIENT_MSG_ACK)
+        exitError("[BC] Recv type is not Ack.\n");
+    
+    if(msg->content == "1")
+        return true;
+    else
+        return false;
+}
+
 bool BaseClient::login()
 {
     Message *msg = new Message();
-    char buf[128];
+    char buf[2048];
 
     // send name, account and password
     msg->type = CLIENT_MSG_LOGIN;
@@ -62,10 +90,13 @@ bool BaseClient::login()
 
     msg->fromBuffer(buf);
     msg->decodeMessage();
-    if(msg->type != CLIENT_MSG_ACK) 
+    if(msg->type != CLIENT_MSG_ACK)
         exitError("[BC] Recv type is not Ack.\n");
-    
-    return true;
+
+    if(msg->content == "1")
+        return true;
+    else
+        return false;
 }
 
 void BaseClient::start_communication()

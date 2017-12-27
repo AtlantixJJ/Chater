@@ -22,7 +22,7 @@ public:
     bool loginVerify(string account, string passwd);
     
     void registerUser(string account, string passwd);
-
+    string findUser(string account);
 private:
     void fromJson();
     void toJson();

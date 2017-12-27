@@ -45,12 +45,13 @@ void* BaseServer::service_thread(void *p)
     while(1)
     {
         char buf[1100] = {};
-        if (recv(ptr->getSockfd(), buf, sizeof(buf), 0) <= 0)
+        if (recv(ptr->getSockfd(), buf, sizeof(buf), 0) <= 0 ||
+            ptr->status == CLIENT_OFFLINE)
         {
             int i;
             ptr->status = CLIENT_OFFLINE;
             printf("[BS][service=%d] quit\n", ptr->getSockfd());
-            pthread_exit((void*)i);
+            pthread_exit((void*)ptr);
         }
 
         ptr->getServerInterface()->process_message(ptr, (const char*)buf);
@@ -75,18 +76,17 @@ bool BaseServer::start_service()
         {
             if (client_sockfd[i].isAvailable())
             {
-                //记录客户端的socket
+
                 client_sockfd[i].reset(fd, this);
                 printf("fd = %d\n", fd);
-                //有客户端连接之后，启动线程给此客户服务
+
                 pthread_t tid;
                 pthread_create(&tid, 0, service_thread, (void*)(client_sockfd + i));
                 break;
             }
             if (sc->getMaxThread() == i)
             {
-                //发送给客户端说聊天室满了
-                char* str = "对不起，聊天室已经满了!";
+                char* str = "Server full.";
                 send(fd, str, strlen(str), 0); 
                 close(fd);
             }
@@ -129,19 +129,44 @@ bool BaseServer::verify_passwd(ClientStatus *client, std::string content)
     std::cout << root <<std::endl;
 
     bool passed = db->loginVerify(root["account"].asString(), root["passwd"].asString());
+    Message *ack = new Message();
+    ack->type = CLIENT_MSG_ACK;
+
     if (!passed)
     {
+        ack->content = "0";
         printf("[BS] Verification failed.\n");
-        return false;
     }
+    else
+    {
+        ack->content = "1";
+        printf("[BS] Verification succeed.\n");
+    }
+
+    ack->encodeMessage();
+    printf("[BS] Send ack : %s", ack->message);
+
+    send(client->getSockfd(), ack->message, strlen(ack->message), 0);
+    delete ack;
+
+    return true;
+}
+
+bool BaseServer::register_user(ClientStatus *client, std::string content)
+{
+    client->status = CLIENT_OFFLINE;
+    Json::Value root;std::istringstream stream(content);stream >> root;
+
+    db->registerUser(root["account"].asString(), root["passwd"].asString());
 
     Message *ack = new Message();
     ack->type = CLIENT_MSG_ACK;
     ack->content = "1";
     ack->encodeMessage();
+    printf("[BS] Send ack : %s", ack->message);
+    //std::cout << ack->root<< std::endl;
     send(client->getSockfd(), ack->message, strlen(ack->message), 0);
     delete ack;
-
     return true;
 }
 
@@ -150,7 +175,7 @@ void BaseServer::process_message(ClientStatus *client, const char* buf)
     int i;
     Message *msg = new Message(buf);
 
-    printf("Message recv : %s\n", msg->message);
+    printf("[BS] Recv : %s\n", msg->message);
     msg->decodeMessage();
 
     switch(msg->type)
