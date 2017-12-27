@@ -4,8 +4,11 @@ cmake_minimum_required(VERSION 3.0)
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 SET(JSON_PATH ${PROJECT_SOURCE_DIR}/thirdparty/jsoncpp/)
+SET(CRPTO_PATH ${PROJECT_SOURCE_DIR}/thirdparty/cryptopp565/)
 
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include)
+INCLUDE_DIRECTORIES(${CRPTO_PATH})
+
 INCLUDE_DIRECTORIES(${JSON_PATH}/include)
 AUX_SOURCE_DIRECTORY(${PROJECT_SOURCE_DIR}/server SERVER_SRC)
 AUX_SOURCE_DIRECTORY(${PROJECT_SOURCE_DIR}/client CLIENT_SRC)
@@ -24,3 +27,6 @@ ADD_LIBRARY(server ${SERVER_SRC})
 ADD_EXECUTABLE(clientmain ${CLIENT_SRC})
 TARGET_LINK_LIBRARIES(clientmain ${JSON_PATH}/build/debug/src/lib_json/libjsoncpp.a server)
 TARGET_LINK_LIBRARIES(servermain ${JSON_PATH}/build/debug/src/lib_json/libjsoncpp.a)
+
+ADD_EXECUTABLE(test_crypto test.cpp)
+TARGET_LINK_LIBRARIES(test_crypto ${CRPTO_PATH}/libcryptopp.a)
