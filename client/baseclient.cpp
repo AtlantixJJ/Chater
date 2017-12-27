@@ -241,6 +241,8 @@ void BaseClient::sendFile(string fname)
     Json::Value msg_json;
     msg_json["type"]     = Json::Value(CLIENT_MSG_FILE      );
     msg_json["content"]  = Json::Value(p                    );
+    msg_json["filename"] = Json::Value(fname                );
+    msg_json["file_len"] = Json::Value(cy.getEncSize()      );
 
     std::ostringstream stream;
     Json::StreamWriterBuilder wbuilder;

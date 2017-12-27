@@ -28,5 +28,5 @@ ADD_EXECUTABLE(clientmain ${CLIENT_SRC})
 TARGET_LINK_LIBRARIES(clientmain ${JSON_PATH}/build/debug/src/lib_json/libjsoncpp.a server ${CRPTO_PATH}/libcryptopp.a)
 TARGET_LINK_LIBRARIES(servermain ${JSON_PATH}/build/debug/src/lib_json/libjsoncpp.a ${CRPTO_PATH}/libcryptopp.a)
 
-ADD_EXECUTABLE(test_crypto test.cpp)
-TARGET_LINK_LIBRARIES(test_crypto ${CRPTO_PATH}/libcryptopp.a)
+ADD_EXECUTABLE(test_crypto test.cpp ${PROJECT_SOURCE_DIR}/server/cryptofile.cpp)
+TARGET_LINK_LIBRARIES(test_crypto ${CRPTO_PATH}/libcryptopp.a ${JSON_PATH}/build/debug/src/lib_json/libjsoncpp.a)

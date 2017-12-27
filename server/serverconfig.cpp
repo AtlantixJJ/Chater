@@ -10,6 +10,7 @@ void ServerConfig::setFieldValueFromJson()
     server_ip       = root["server_ip"      ].asString();
     server_port     = root["server_port"    ].asInt();
     max_thr         = root["max_thr"        ].asInt();
+    download_path   = root["download_path"  ].asString();
 }
 
 void ServerConfig::saveFieldValueToJson()
@@ -17,6 +18,7 @@ void ServerConfig::saveFieldValueToJson()
     root["server_ip"      ] = Json::Value(server_ip       );
     root["server_port"    ] = Json::Value(server_port     );
     root["max_thr"        ] = Json::Value(max_thr         );
+    root["download_path"  ] = Json::Value(download_path   );
 }
 
 ServerConfig::ServerConfig(const ServerConfig &ref)
@@ -36,6 +38,7 @@ ServerConfig::ServerConfig(string fname)
 ServerConfig::ServerConfig()
 {
     server_ip       = "127.0.0.1";
+    download_path   = "./downloads/";
     server_port     = 10222;
     max_thr         = 128;
     
@@ -52,6 +55,7 @@ void ServerConfig::fromObj(const ServerConfig &ref)
     server_ip       = ref.server_ip       ;
     server_port     = ref.server_port     ;
     max_thr         = ref.max_thr         ;
+    download_path   = ref.download_path   ;
 }
 
 const ServerConfig& ServerConfig::operator=(const ServerConfig &ref)

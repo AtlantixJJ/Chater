@@ -1,4 +1,5 @@
-#include "hex.h"
+#include "cryptofile.h"
+#include "json/json.h"
 #include <fstream>
 #include <string.h>
 #include <iostream>
@@ -9,10 +10,35 @@ using namespace std;
 int main ()
 {
     string fname, newfname;
-    int file_size = 0, enc_size = 0, dec_size = 0;
+    //int file_size = 0, enc_size = 0, dec_size = 0;
 
     cin >> fname;
     newfname = fname + "_new";
+
+    CryptoFile cy;
+    cy.openFile(fname);
+    cy.openOutputFile(newfname);
+    int block_size = 1024;// * 32;
+    int file_size = cy.getFileSize();
+    int block_num = cy.getFileSize() / block_size;
+    cout << file_size << " " << block_num << endl;
+    int pos = 0;
+    if (block_num % block_size != 0) block_num ++;
+
+    for (int i = 0; i < block_num; i++)
+    {
+        pos = block_size * i;
+        if (i == block_num - 1)
+            block_size = file_size % block_size;
+        Json::Value node = cy.getFileSegment(pos, block_size);
+        cy.writeFileSegment(node["data"].asString(), pos, block_size);
+        //cout << node << endl;
+    }
+
+    cy.closeFile();
+    cy.closeOutputFile();
+
+    /*
     ifstream fin(fname, ios::binary);
     ofstream fout(newfname, ios::binary);
 
@@ -50,6 +76,7 @@ int main ()
     fout.write(dec, sizeof(char) * dec_size);
     //fout.flush();
     fout.close();
+    */
 
     return 0;
 }

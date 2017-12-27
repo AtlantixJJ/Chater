@@ -25,6 +25,9 @@ public:
     const char* getServerIP() const {return server_ip.c_str();}
     short getServerPort() const {return server_port;}
     int getMaxThread() const {return max_thr;}
+
+    string download_path;
+    
 private:
     void setFieldValueFromJson();
     void saveFieldValueToJson();
@@ -33,7 +36,6 @@ private:
     string server_ip;
     short server_port;
     int max_thr;
-
 private:
     bool has_file;
     string file_name;

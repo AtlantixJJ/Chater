@@ -1,6 +1,7 @@
 #ifndef BASESERVER_H_
 #define BASESERVER_H_
 
+#include "message.h"
 #include "common.h"
 #include "clientstatus.h"
 #include "userdatabase.h"
@@ -30,6 +31,7 @@ private:
     bool verify_passwd(ClientStatus *client, std::string content);
     bool register_user(ClientStatus *client, std::string content);
     void sendMessage(ClientStatus *client, int op, std::string content);
+    void sendFile(ClientStatus *client, Message *msg);
 private:
     bool init();
     bool start_socket();

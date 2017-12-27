@@ -1,7 +1,6 @@
 #include "baseserver.h"
 #include "serverconfig.h"
 #include "common.h"
-#include "message.h"
 #include <unistd.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -199,6 +198,14 @@ void BaseServer::sendMessage(ClientStatus *client, int op, std::string content)
     delete ack;
 }
 
+void BaseServer::sendFile(ClientStatus *client, Message *msg)
+{
+    CryptoFile cy;
+    string fname = msg->root["filename"].asString();
+    cy.decodeString(msg->content);
+    cy.saveToFile(sc->download_path + fname);
+}
+
 void BaseServer::process_message(ClientStatus *client, const char* buf)
 {
     int i;
@@ -219,10 +226,17 @@ void BaseServer::process_message(ClientStatus *client, const char* buf)
     case CLIENT_MSG_REGISTER:
         register_user(client, msg->content);
         break;
+    // Chat words
     case CLIENT_MSG_WORD:
         peer = db->getRoot()[client->getAccount()]["peer"];
         peer_cc = (ClientStatus*)peer["status"].asInt64();
         sendMessage(peer_cc, CLIENT_MSG_WORD, msg->content);
+        break;
+    // Chat files
+    case CLIENT_MSG_FILE:
+        peer = db->getRoot()[client->getAccount()]["peer"];
+        peer_cc = (ClientStatus*)peer["status"].asInt64();
+        sendMessage(peer_cc, CLIENT_MSG_WORD, msg->message);
         break;
     // content is peer name
     case CLIENT_MSG_CHAT:
