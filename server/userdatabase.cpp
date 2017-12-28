@@ -55,13 +55,18 @@ bool UserDataBase::loginVerify(string account, string passwd)
 void UserDataBase::setFriend(string p1, string p2)
 {
     Json::Value f1, f2;
-    f1["name"]      = root[p1]["name"];
-    f1["status"]    = root[p1]["status"];
-    f2["name"]      = root[p2]["name"];
-    f2["status"]    = root[p2]["status"];
+    f1["name"]      = root[p2]["name"];
+    f1["status"]    = root[p2]["status"];
+    f2["name"]      = root[p1]["name"];
+    f2["status"]    = root[p1]["status"];
 
     root[p1]["friends"][p2]     = f1;
     root[p2]["friends"][p1]     = f2;
+}
+
+bool UserDataBase::isOnline(string ac)
+{
+    return (root[ac]["status"].asInt() == CLIENT_VERIFIED);
 }
 
 string UserDataBase::getAllFriends(string ac)
@@ -77,7 +82,7 @@ void UserDataBase::setPeer(string account, string peer_ac, ClientStatus *cc)
 {
     Json::Value PeerNode;
     PeerNode["account"] = Json::Value(peer_ac);
-    PeerNode["status"]  = Json::Value((Json::Int64)cc);
+    PeerNode["client_status"]  = Json::Value((Json::Int64)cc);
     root[account]["peer"] = PeerNode;
 }
 

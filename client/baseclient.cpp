@@ -218,7 +218,9 @@ void BaseClient::process_response(const char *buf)
             {
                 printf(" | [BC] Reject friend request.\n");
                 flag = false;
-                sendMessage(CLIENT_MSG_RESADD, "0");
+                dmsg->setDecision(content, "0");
+                dmsg->encodeMessage();
+                sendMessage(CLIENT_MSG_RESADD, dmsg->message);
             }
             else continue;
             break;

@@ -27,6 +27,7 @@ public:
     void setFriend(string p1, string p2);
     void setPeer(string account, string peer_ac, ClientStatus *cc);
     void setStatus(string account, int status, ClientStatus *cc);
+    bool isOnline(string ac);
     string getAllFriends(string ac);
     string getAllUsers();
     const Json::Value& getRoot() const {return root;}

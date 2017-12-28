@@ -21,5 +21,6 @@ void ClientStatus::verified(string ac)
 {
     status = CLIENT_VERIFIED;
     account = ac;
+    //printf("%s %d %ld\n", account.c_str(), CLIENT_VERIFIED, (long long)(this));
     server_interface->db->setStatus(account, CLIENT_VERIFIED, this);
 }

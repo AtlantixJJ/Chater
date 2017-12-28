@@ -208,6 +208,7 @@ void* BaseServer::sendFileThread(void *arg)
     BaseServer *bs = (BaseServer*)info->bs;
     ClientStatus *client = (ClientStatus*)info->client;
 
+    printf(" | begin send.\n");
     std::string fname = msg->root["filename"].asString();
 
     CryptoFile cy;
@@ -334,6 +335,7 @@ void BaseServer::process_message(ClientStatus *client, const char* buf)
 
     printf("[BS] Recv(%d) : %s\n", strlen(msg->message), msg->message);
     msg->decodeMessage();
+    printf("[BS] From %s.\n", client->getAccount().c_str());
 
     switch(msg->type)
     {
@@ -358,33 +360,47 @@ void BaseServer::process_message(ClientStatus *client, const char* buf)
     case CLIENT_MSG_WORD:
     case CLIENT_MSG_CLOSECHAT:
         peer = db->getRoot()[client->getAccount()]["peer"];
-        peer_cc = (ClientStatus*)peer["status"].asInt64();
+        peer_cc = (ClientStatus*)peer["client_status"].asInt64();
+        std::cout << "WORD: " <<  peer << endl;
         sendMessage(peer_cc, msg->type, msg->content);
         break;
     // Chat files
     case CLIENT_MSG_FILE:
         peer = db->getRoot()[client->getAccount()]["peer"];
-        peer_cc = (ClientStatus*)peer["status"].asInt64();
+        peer_cc = (ClientStatus*)peer["client_status"].asInt64();
+        
         recvFile(msg);
         //info = new FileThreadInfo;
         //info->bs = this; info->msg = msg;
         //pthread_create(&tid, 0, recvFileThread, (void*)(new Message(buf)));
         sendMessage(client, CLIENT_MSG_FILEACK, "");
-        if (msg->root["eof"].asInt() == 1)
-        {
-            printf(" | [BS] Recv done.\n");
-            sinfo = new SendFileInfo;
-            sinfo->bs = this; sinfo->client = peer_cc; sinfo->msg = msg;
-            pthread_create(&tid, 0, sendFileThread, (void*)sinfo);
-        }
+            if (msg->root["eof"].asInt() == 1)
+            {
+                printf(" | [BS] Recv done.\n");
+                if (peer_cc != NULL &&
+                    db->isOnline(peer["account"].asString()))
+                {
+                    printf(" | [BS] Send begin.\n");
+                    sinfo = new SendFileInfo;
+                    sinfo->bs = this; sinfo->client = peer_cc; sinfo->msg = new Message(buf);
+                    pthread_create(&tid, 0, sendFileThread, (void*)sinfo);
+                }
+            }
             
         break;
     // content is peer name
     case CLIENT_MSG_CHAT:
         peer = db->findUser(msg->content);
         peer_cc = (ClientStatus*)peer["client_status"].asInt64();
+
+        cout << msg->content << " CHAT: " << client->getAccount() << " " << peer << endl;
+        // set peer relation in DB
+        db->setPeer(msg->content, client->getAccount(), client);
+        db->setPeer(client->getAccount(), msg->content, peer_cc);
+        //printf(" | [BS] Peer : %s %s\n", client->getAccount().c_str(), peer["account"].asString().c_str());
         sendMessage(peer_cc, CLIENT_MSG_CHAT, client->getAccount());
         break;
+    // Request from client to search
     case CLIENT_MSG_SEARCH:
         str = db->getAllUsers();
         printf("[BS] All users : %s\n", str.c_str());
@@ -394,7 +410,7 @@ void BaseServer::process_message(ClientStatus *client, const char* buf)
     case CLIENT_MSG_APPADD:
         peer = db->findUser(msg->content);
         peer_cc = (ClientStatus*)peer["client_status"].asInt64();
-        cout << "Content" << msg->content << "\nPeer: " << peer << endl;
+        cout << "Content " << msg->content << "\nPeer: " << peer << endl;
         if (peer_cc != NULL && peer["status"].asInt() == CLIENT_VERIFIED)
             // send for acception
             sendMessage(peer_cc, CLIENT_MSG_APPADD, client->getAccount());
@@ -412,9 +428,6 @@ void BaseServer::process_message(ClientStatus *client, const char* buf)
         if (peer_cc != NULL && peer["status"].asInt() == CLIENT_VERIFIED)
         {
             if(dmsg->dec == "1") {
-                // set peer relation in DB
-                db->setPeer(dmsg->account, client->getAccount(), client);
-                db->setPeer(client->getAccount(), dmsg->account, peer_cc);
                 db->setFriend(dmsg->account, client->getAccount());
                 db->writeToFile();
                 dmsg->setDecision(client->getAccount(), "1");
