@@ -1,4 +1,6 @@
 bin
+*.sh
 build*
+
 .vscode
 .DS_Store
