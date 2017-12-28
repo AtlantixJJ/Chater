@@ -17,6 +17,7 @@ int decodeCMD(std::string cmd)
     if ((int)cmd.find("add") > -1) return CLIENT_MSG_APPADD;
     if ((int)cmd.find("chat") > -1) return CLIENT_CMD_CHAT;
     if ((int)cmd.find("exit") > -1) return CLIENT_CMD_EXIT;
+    if ((int)cmd.find("sync") > -1) return CLIENT_MSG_SYNCFRIND;
 }
 
 bool doRegister(BaseClient *bc)
@@ -34,6 +35,23 @@ bool requestUserList(BaseClient *bc)
     {
         for (auto key : bc->all_users.getMemberNames())
             cout << key << " : " << bc->all_users[key] << endl;
+        return true;
+    }
+    else
+    {
+        cout << " | [CMD] Search request failed." << endl;
+        return false;
+    }
+}
+
+bool requestFriendList(BaseClient *bc)
+{
+    cout << " | [CMD] Request to sync friends." << endl;
+
+    if(bc->sendRequest(CLIENT_MSG_SYNCFRIND, ""))
+    {
+        for (auto key : bc->friends.getMemberNames())
+            cout << key << " : " << bc->friends[key] << endl;
         return true;
     }
     else
@@ -78,6 +96,8 @@ void start_chat(BaseClient *bc, string account)
 
     bc->peer_ac = account;
 
+    bc->setChatting(true);
+
     bc->start_chat();
 }
 
@@ -96,6 +116,9 @@ bool serve(BaseClient *bc)
     string cmd, arg1, arg2;
     int op;
     bool valid;
+    Json::StreamWriterBuilder wbuilder;
+    wbuilder["indentation"] = ""; // No identation for message encoding
+    std::string document;
 
     cout << " | [CMD] Hi [ " << bc->getClientConfig()->getName() <<
         " ], account [ " << bc->getClientConfig()->getAccount() << " ]\n";
@@ -106,10 +129,17 @@ bool serve(BaseClient *bc)
         cin >> cmd;
         op = decodeCMD(cmd);
 
-        if(bc->isChatting()) bc->start_chat();
+        if(bc->isChatting())
+        {
+            bc->start_chat();
+            continue;
+        }
 
         switch(op)
         {
+        case CLIENT_MSG_SYNCFRIND:
+            requestFriendList(bc);
+            break;
         case CLIENT_MSG_SEARCH: requestUserList(bc); break;
         case CLIENT_CMD_LIST:
             cout << " | [CMD] Friends list: " << endl;
@@ -126,6 +156,8 @@ bool serve(BaseClient *bc)
             break;
         case CLIENT_CMD_EXIT:
             cout << " | [CMD] Exit login." << endl;
+            bc->sendMessage(CLIENT_MSG_DISCONNECT, "");
+            close(bc->getSockfd());
             return true;
             break;
         }

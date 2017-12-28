@@ -12,7 +12,7 @@
 #include "baseclient.h"
 #include "json/json.h"
 
-const int FILE_BLOCK_SIZE = 1024;
+const int FILE_BLOCK_SIZE = 512;
 const int ENC_BLOCK_SIZE  = (int)(FILE_BLOCK_SIZE * 2);
 
 const int CLIENT_ONLINE     = 1;
@@ -40,7 +40,10 @@ const int CLIENT_MSG_CLOSECHAT  = CLIENT_MSG_CHAT + 1;
 
 const int CLIENT_MSG_FILEACK    = CLIENT_MSG_CLOSECHAT + 1;
 
-const int CLIENT_CMD_LIST       = CLIENT_MSG_FILEACK + 1;
+const int CLIENT_MSG_SYNCFRIND  = CLIENT_MSG_FILEACK + 1;
+const int CLIENT_MSG_DISCONNECT = CLIENT_MSG_SYNCFRIND + 1;
+
+const int CLIENT_CMD_LIST       = CLIENT_MSG_DISCONNECT + 1;
 const int CLIENT_CMD_EXIT       = CLIENT_CMD_LIST + 1;
 const int CLIENT_CMD_CHAT       = CLIENT_CMD_EXIT + 1;
 

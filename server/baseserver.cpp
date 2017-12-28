@@ -337,6 +337,14 @@ void BaseServer::process_message(ClientStatus *client, const char* buf)
 
     switch(msg->type)
     {
+    // Recv sync friend
+    case CLIENT_MSG_SYNCFRIND:
+        sendMessage(client, msg->type, db->getAllFriends(client->getAccount()));
+        break;
+    case CLIENT_MSG_DISCONNECT:
+        client->disconnected();
+        close(client->getSockfd());
+        break;
     case CLIENT_MSG_FILEACK:
         recv_ack = true;
         break;
@@ -348,9 +356,10 @@ void BaseServer::process_message(ClientStatus *client, const char* buf)
         break;
     // Chat words
     case CLIENT_MSG_WORD:
+    case CLIENT_MSG_CLOSECHAT:
         peer = db->getRoot()[client->getAccount()]["peer"];
         peer_cc = (ClientStatus*)peer["status"].asInt64();
-        sendMessage(peer_cc, CLIENT_MSG_WORD, msg->content);
+        sendMessage(peer_cc, msg->type, msg->content);
         break;
     // Chat files
     case CLIENT_MSG_FILE:
@@ -406,6 +415,8 @@ void BaseServer::process_message(ClientStatus *client, const char* buf)
                 // set peer relation in DB
                 db->setPeer(dmsg->account, client->getAccount(), client);
                 db->setPeer(client->getAccount(), dmsg->account, peer_cc);
+                db->setFriend(dmsg->account, client->getAccount());
+                db->writeToFile();
                 dmsg->setDecision(client->getAccount(), "1");
             } else
                 dmsg->setDecision(client->getAccount(), "0");

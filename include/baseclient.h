@@ -33,6 +33,8 @@ public:
     static void* recvFileThread(void *arg);
     ClientConfig* getClientConfig() {return cc;}
     ServerConfig* getServerConfig() {return sc;}
+    int getSockfd() const {return sockfd;}
+    void setChatting(bool val) {is_chatting = val;}
     bool isChatting() const {return is_chatting;}
 public:
     string peer_ac;

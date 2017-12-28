@@ -22,6 +22,7 @@ public:
 
     bool writeToFile();
     string getLoginContent();
+    const string& getStr() const {return name;}
     const char* getName()const{return name.c_str();}
     const char* getAccount() const {return account.c_str();}
 private:

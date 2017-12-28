@@ -135,7 +135,7 @@ void* BaseClient::recvFileThread(void *arg)
 /// Usually a string or a JSON in decision message
 void BaseClient::process_response(const char *buf)
 {
-    bool flag;
+    bool flag=false;
     pthread_t tid;
     Message *msg = new Message();
     Json::Value respond;
@@ -156,7 +156,7 @@ void BaseClient::process_response(const char *buf)
     {
     // Recv file ack
     case CLIENT_MSG_FILEACK:
-        recv_ack = true;
+        recv_ack = true; flag = true;
         break;
     // Recv file
     case CLIENT_MSG_FILE:
@@ -164,15 +164,18 @@ void BaseClient::process_response(const char *buf)
         recvFile(msg);
         printf(" | [BC] Send Ack\n");
         sendMessage(CLIENT_MSG_FILEACK, "");
+        flag = true;
         break;
     // Recv message of word
     case CLIENT_MSG_WORD:
-        cout << all_users[peer_ac]["name"] << " : " << endl << content << endl;
+        cout << all_users[peer_ac]["name"].asString() << " : " << endl << content << endl;
+        flag = true;
         break;
     // Recv content is account of peer
     case CLIENT_MSG_CHAT:
         peer_ac = content;
         is_chatting = true;
+        flag = true;
         break;
     // the server send search response back
     case CLIENT_MSG_SEARCH:
@@ -189,6 +192,11 @@ void BaseClient::process_response(const char *buf)
             }
             all_users[key]["status"] = trans; 
         }
+        flag = true;
+        break;
+    // Recv friend list
+    case CLIENT_MSG_SYNCFRIND:
+        stream >> friends;
         flag = true;
         break;
     // the server send a application for friend
@@ -362,7 +370,7 @@ void BaseClient::start_chat()
     char buf[4096];
     int op;
 
-    printf(" | [BC] Frind %s invite you to chat.\n", peer_ac.c_str());
+    printf(" | [BC] Friend %s invite you to chat.\n", peer_ac.c_str());
 
     while(true)
     {
@@ -373,7 +381,7 @@ void BaseClient::start_chat()
         switch(op)
         {
         case CLIENT_CMD_CHATMSG:
-            cout << cc->getName() << " : " << endl;
+            cout << cc->getStr() << " : " << endl;
             cout << buf + 2 << endl;
             sendMessage(CLIENT_MSG_WORD, string(buf+2));
             break;
@@ -384,8 +392,11 @@ void BaseClient::start_chat()
             break;
         case CLIENT_CMD_EXIT:
             sendMessage(CLIENT_MSG_CLOSECHAT, "");
+            is_chatting = false;
+            
+            printf(" | [BC] Exit chatting.\n");
             return;
-            break;    
+            break;
         }
 
     }

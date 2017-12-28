@@ -52,6 +52,27 @@ bool UserDataBase::loginVerify(string account, string passwd)
     return false;
 }
 
+void UserDataBase::setFriend(string p1, string p2)
+{
+    Json::Value f1, f2;
+    f1["name"]      = root[p1]["name"];
+    f1["status"]    = root[p1]["status"];
+    f2["name"]      = root[p2]["name"];
+    f2["status"]    = root[p2]["status"];
+
+    root[p1]["friends"][p2]     = f1;
+    root[p2]["friends"][p1]     = f2;
+}
+
+string UserDataBase::getAllFriends(string ac)
+{
+    Json::Value node = root[ac]["friends"];
+    Json::StreamWriterBuilder wbuilder;
+    wbuilder["indentation"] = ""; // No identation for message encoding
+    std::string document = Json::writeString(wbuilder, node) + "\0\n\0";
+    return document;
+}
+
 void UserDataBase::setPeer(string account, string peer_ac, ClientStatus *cc)
 {
     Json::Value PeerNode;
@@ -119,7 +140,6 @@ string UserDataBase::getAllUsers()
 
     Json::StreamWriterBuilder wbuilder;
     wbuilder["indentation"] = ""; // No identation for message encoding
-    std::string document = Json::writeString(wbuilder, names);
-    document += "\0\n\0";
+    std::string document = Json::writeString(wbuilder, names) + "\0\n\0";
     return document;
 }
