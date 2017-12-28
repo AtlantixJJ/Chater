@@ -136,6 +136,7 @@ void* BaseClient::recvFileThread(void *arg)
 void BaseClient::process_response(const char *buf)
 {
     bool flag;
+    pthread_t tid;
     Message *msg = new Message();
     Json::Value respond;
     DecisionMessage *dmsg = new DecisionMessage();
@@ -159,7 +160,9 @@ void BaseClient::process_response(const char *buf)
         break;
     // Recv file
     case CLIENT_MSG_FILE:
+        //pthread_create(&tid, 0, recvFileThread, (void*)(new Message(buf)));
         recvFile(msg);
+        printf(" | [BC] Send Ack\n");
         sendMessage(CLIENT_MSG_FILEACK, "");
         break;
     // Recv message of word
@@ -306,20 +309,64 @@ void BaseClient::sendFile(string fname)
         msg_json["content"]     = Json::Value(seg              );
         msg_json["block_size"]  = Json::Value(block_size       );
         std::string document = Json::writeString(wbuilder, msg_json) + "\n\0\0";
-        printf("Send File (%d/%d) : %s\n", seg.length(), document.length(), document.c_str());
+        printf("Send File (%d/%d)\n", seg.length(), document.length(), document.c_str());
         sendMessage(document.c_str(), document.length());
         while(!recv_ack) usleep(10);
     }
     cy.closeFile();
 }
 
+/*
+void BaseClient::sendFileThread(void *arg)
+{
+    string fname = *((string*)arg);
+    CryptoFile cy;
+    cy.openFile(fname);
+    int block_size = FILE_BLOCK_SIZE;
+    int file_size = cy.getFileSize();
+    int block_num = cy.getFileSize() / block_size;
+    int pos = 0;
+    if (block_num % block_size != 0) block_num ++;
+
+    std::ostringstream stream;
+    Json::StreamWriterBuilder wbuilder;
+    wbuilder["indentation"] = ""; // No identation for message encoding
+
+    Json::Value msg_json;
+    msg_json["type"]     = Json::Value(CLIENT_MSG_FILE  );
+    msg_json["filename"] = Json::Value(fname            );
+
+    for (int i = 0; i < block_num; i++)
+    {
+        recv_ack = false;
+        pos = block_size * i;
+        if (i == block_num - 1)
+        {
+            block_size = file_size % block_size;
+            msg_json["eof"] = Json::Value(1);
+        } else msg_json["eof"] = Json::Value(0);
+        string seg = cy.getFileSegment(pos, block_size);
+        msg_json["content"]     = Json::Value(seg              );
+        msg_json["block_size"]  = Json::Value(block_size       );
+        std::string document = Json::writeString(wbuilder, msg_json) + "\n\0\0";
+        printf("Send File (%d/%d)\n", seg.length(), document.length(), document.c_str());
+        sendMessage(document.c_str(), document.length());
+        while(!recv_ack) usleep(10);
+    }
+    cy.closeFile();
+}
+*/
+
 void BaseClient::start_chat()
 {
     char buf[4096];
     int op;
 
+    printf(" | [BC] Frind %s invite you to chat.\n", peer_ac.c_str());
+
     while(true)
     {
+        printf(">> ");
         cin.getline(buf, 4096);
         op = BaseClient::decodeChatCMD(buf);
 

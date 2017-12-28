@@ -12,8 +12,8 @@
 #include "baseclient.h"
 #include "json/json.h"
 
-const int FILE_BLOCK_SIZE = 1024 * 4;
-const int ENC_BLOCK_SIZE  = (int)(FILE_BLOCK_SIZE * 1.5);
+const int FILE_BLOCK_SIZE = 1024;
+const int ENC_BLOCK_SIZE  = (int)(FILE_BLOCK_SIZE * 2);
 
 const int CLIENT_ONLINE     = 1;
 const int CLIENT_VERIFIED  = CLIENT_ONLINE + 1;

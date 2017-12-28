@@ -56,7 +56,7 @@ void UserDataBase::setPeer(string account, string peer_ac, ClientStatus *cc)
 {
     Json::Value PeerNode;
     PeerNode["account"] = Json::Value(peer_ac);
-    PeerNode["status"]  = Json::Value((long long)cc);
+    PeerNode["status"]  = Json::Value((Json::Int64)cc);
     root[account]["peer"] = PeerNode;
 }
 
@@ -66,7 +66,7 @@ void UserDataBase::setStatus(string account, int status, ClientStatus *cc)
     if (!root[account].isNull())
     {
         root[account]["status"] = Json::Value(status);
-        root[account]["client_status"] = Json::Value((long long)cc);
+        root[account]["client_status"] = Json::Value((Json::Int64)cc);
     }
 }
 

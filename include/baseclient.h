@@ -26,12 +26,13 @@ public:
     void sendMessage(int op, const string& content);
     void sendMessage(const char *buf, int len);
     void sendFile(string fname);
-    static void sendFileThread(void *arg);
+    //static void sendFileThread(void *arg);
     void start_recv();
     void start_chat();
     void recvFile(Message *msg);
     static void* recvFileThread(void *arg);
     ClientConfig* getClientConfig() {return cc;}
+    ServerConfig* getServerConfig() {return sc;}
     bool isChatting() const {return is_chatting;}
 public:
     string peer_ac;

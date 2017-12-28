@@ -26,12 +26,14 @@ public:
     bool start_service();
 
     void process_message(ClientStatus *client, const char* buf);
-
+    void setRecvAck(bool val){recv_ack = val;}
+    bool getRecvAck(){return recv_ack;}
 private:
     bool verify_passwd(ClientStatus *client, std::string content);
     bool register_user(ClientStatus *client, std::string content);
     void sendMessage(ClientStatus *client, int op, std::string content);
     void sendFile(ClientStatus *client, Message *msg);
+    static void* sendFileThread(void *arg);
     void recvFile(Message *msg);
     static void* recvFileThread(void *arg);
 private:

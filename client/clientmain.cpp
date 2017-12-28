@@ -142,6 +142,8 @@ int main()
     int state = 0;
 
     printf(" | [CMD] Simple client by 2015011313.\n");
+    printf(" | [CMD] Server %s:%d\n", bc->getServerConfig()->getServerIP(),
+        bc->getServerConfig()->getServerPort());
 
     while(true)
     {
