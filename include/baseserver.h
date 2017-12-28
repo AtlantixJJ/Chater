@@ -63,7 +63,7 @@ struct SendFileInfo
 {
     BaseServer *bs;
     ClientStatus *client;
-    Message *msg;
+    string *fname;
 };
 
 #endif

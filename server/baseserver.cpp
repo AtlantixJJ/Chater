@@ -204,12 +204,11 @@ void BaseServer::sendMessage(ClientStatus *client, int op, std::string content)
 void* BaseServer::sendFileThread(void *arg)
 {
     SendFileInfo *info = (SendFileInfo*)arg;
-    Message *msg = (Message*)info->msg;
     BaseServer *bs = (BaseServer*)info->bs;
     ClientStatus *client = (ClientStatus*)info->client;
 
     printf(" | begin send.\n");
-    std::string fname = msg->root["filename"].asString();
+    std::string fname = *(info->fname);
 
     CryptoFile cy;
     cy.openFile("./server_file/" + fname);
@@ -245,6 +244,7 @@ void* BaseServer::sendFileThread(void *arg)
         //sendMessage(client, CLIENT_MSG_SENDFILE, document.c_str(), document.length());
         while(!bs->getRecvAck()) usleep(10);
     }
+    delete info->fname;
     return NULL;
 }
 
@@ -382,7 +382,7 @@ void BaseServer::process_message(ClientStatus *client, const char* buf)
                 {
                     printf(" | [BS] Send begin.\n");
                     sinfo = new SendFileInfo;
-                    sinfo->bs = this; sinfo->client = peer_cc; sinfo->msg = new Message(buf);
+                    sinfo->bs = this; sinfo->client = peer_cc; sinfo->fname = new string(msg->root["filename"].asString());
                     pthread_create(&tid, 0, sendFileThread, (void*)sinfo);
                 }
             }
