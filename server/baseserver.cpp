@@ -71,10 +71,12 @@ void* BaseServer::service_thread(void *p)
 {
     ClientStatus *ptr = (ClientStatus*)p;
     printf("[BS][service=%d]\n", ptr->getSockfd());
+    char buf[ENC_BLOCK_SIZE] = {};
+
     while(1)
     {
-        char buf[1100] = {};
-        if (recv(ptr->getSockfd(), buf, sizeof(buf), 0) <= 0 ||
+        
+        if (recv(ptr->getSockfd(), buf, sizeof(char) * ENC_BLOCK_SIZE, 0) <= 0 ||
             ptr->status == CLIENT_OFFLINE)
         {
             int i;
@@ -84,6 +86,7 @@ void* BaseServer::service_thread(void *p)
         }
 
         ptr->getServerInterface()->process_message(ptr, (const char*)buf);
+        memset(buf, 0, sizeof(char) * ENC_BLOCK_SIZE);
     }
 }
 
@@ -200,22 +203,54 @@ void BaseServer::sendMessage(ClientStatus *client, int op, std::string content)
 
 void BaseServer::sendFile(ClientStatus *client, Message *msg)
 {
+    /*
     CryptoFile cy;
     string fname = msg->root["filename"].asString();
     cy.decodeString(msg->content);
     cy.saveToFile(sc->download_path + fname);
+    */
+}
+
+void BaseServer::recvFile(Message *msg)
+{
+    std::string fname = msg->root["filename"].asString();
+    std::string data = msg->root["content"].asString();
+    printf("Recv file(%d/%d)\n", data.length(), strlen(msg->message));
+    CryptoFile cy;
+    cy.openOutputFile("./server_file/" + fname);
+    cy.writeFileSegment(data, 0, 0);
+    cy.closeOutputFile();
+}
+
+void* BaseServer::recvFileThread(void *arg)
+{
+    //FileThreadInfo *info = (FileThreadInfo*)arg;
+    Message *msg = (Message*)arg;
+    msg->decodeMessage();
+    std::string fname = msg->root["filename"].asString();
+    std::string data = msg->root["content"].asString();
+    printf("Recv file(%d/%d)\n", data.length(), strlen(msg->message));
+    CryptoFile cy;
+    cy.openOutputFile("./server_file/" + fname);
+    cy.writeFileSegment(data, 0, 0);
+    cy.closeOutputFile();
+    delete msg;
+    return NULL;
 }
 
 void BaseServer::process_message(ClientStatus *client, const char* buf)
 {
     int i;
+    pthread_t tid;
+    FileThreadInfo *info;
+    
     Message *msg = new Message(buf);
     Json::Value peer;// = NULL;
     DecisionMessage *dmsg = new DecisionMessage();
     ClientStatus *peer_cc = NULL;
     string str;
 
-    printf("[BS] Recv : %s\n", msg->message);
+    printf("[BS] Recv(%d) : %s\n", strlen(msg->message), msg->message);
     msg->decodeMessage();
 
     switch(msg->type)
@@ -236,7 +271,13 @@ void BaseServer::process_message(ClientStatus *client, const char* buf)
     case CLIENT_MSG_FILE:
         peer = db->getRoot()[client->getAccount()]["peer"];
         peer_cc = (ClientStatus*)peer["status"].asInt64();
-        sendMessage(peer_cc, CLIENT_MSG_WORD, msg->message);
+        //recvFile(msg);
+        //info = new FileThreadInfo;
+        //info->bs = this; info->msg = msg;
+        pthread_create(&tid, 0, recvFileThread, (void*)(new Message(buf)));
+        sendMessage(client, CLIENT_MSG_FILEACK, "");
+        //if (!msg->root["eof"].asInt() == 1)
+        //    sendFile()
         break;
     // content is peer name
     case CLIENT_MSG_CHAT:

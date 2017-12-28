@@ -25,9 +25,8 @@ public:
     void decode(const char *seq, int seq_size);
     void clear();
 
-
     int getFileSize() const {return file_size;}
-    Json::Value getFileSegment(int pos, int block_size);
+    string getFileSegment(int pos, int block_size);
     string decodeFileSegment(const string &segment);
     void writeFileSegment(const string &seg, int pos, int block_size);
     void openOutputFile(std::string fname);

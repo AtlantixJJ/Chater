@@ -23,6 +23,7 @@ public:
     void sendMessage(int op, const string& content);
     void sendMessage(const char *buf, int len);
     void sendFile(string fname);
+    static void sendFileThread(void *arg);
     void start_recv();
     void start_chat();
 
@@ -32,13 +33,16 @@ public:
     string peer_ac;
     Json::Value friends;
     Json::Value all_users;
+    std::string file_name;
 
 private:
+    
     static int decodeChatCMD(char *buf);
     void process_response(int op, string content);
     static void* recv_thread(void *p);
 
 private:
+    bool recv_ack;
     bool is_chatting;
     int process_state;
 

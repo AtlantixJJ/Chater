@@ -32,6 +32,8 @@ private:
     bool register_user(ClientStatus *client, std::string content);
     void sendMessage(ClientStatus *client, int op, std::string content);
     void sendFile(ClientStatus *client, Message *msg);
+    void recvFile(Message *msg);
+    static void* recvFileThread(void *arg);
 private:
     bool init();
     bool start_socket();
@@ -46,6 +48,12 @@ private:
 
     int sockfd;
     struct sockaddr_in addr;
+};
+
+struct FileThreadInfo
+{
+    BaseServer *bs;
+    Message *msg;
 };
 
 #endif

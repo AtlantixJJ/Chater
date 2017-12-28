@@ -3,7 +3,8 @@
 #include <iostream>
 using namespace std;
 using namespace CryptoPP;
-Json::Value CryptoFile::getFileSegment(int position, int block_size)
+
+std::string CryptoFile::getFileSegment(int position, int block_size)
 {
     fin.seekg(position, ios::beg);
     
@@ -20,18 +21,18 @@ Json::Value CryptoFile::getFileSegment(int position, int block_size)
     //if (position == 0) cout << "ENC: " << encoded << endl;
     delete [] buffer;
 
-    Json::Value node;
+    // Json::Value node;
 
-    node["size"] = Json::Value(file_size);
-    node["data"] = Json::Value(encoded  );
-    node["eof"]  = Json::Value(fin.eof());
-    return node;
+    // node["size"] = Json::Value(file_size);
+    // node["data"] = Json::Value(encoded  );
+    // node["eof"]  = Json::Value(fin.eof());
+    return encoded;
 }
 
 string CryptoFile::decodeFileSegment(const string &segment)
 {
     string decoded;
-    
+
     StringSource(segment, true, new Base64Decoder(new StringSink(decoded)));
 
     return decoded;
@@ -39,12 +40,8 @@ string CryptoFile::decodeFileSegment(const string &segment)
 
 void CryptoFile::writeFileSegment(const string &seg, int pos, int block_size)
 {
-    //mcout << pos <<endl;
-    //cout << "SEG: "<< seg << endl;
     string a = decodeFileSegment(seg);
-    //cout << "DEC: "<< a << endl;
     fout.write(a.c_str(), a.length());
-    //cout << a << endl;
     fout.flush();
 }
 
@@ -68,7 +65,8 @@ void CryptoFile::openFile(std::string fname)
 
 void CryptoFile::openOutputFile(std::string fname)
 {
-    fout.open(fname, ios::binary|ios::out);
+    // Use app for continuous sending/receiving
+    fout.open(fname, ios::binary|ios::app);
 }
 
 char* CryptoFile::encodeFile(string fname)
