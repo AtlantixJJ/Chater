@@ -3,7 +3,10 @@
 
 #include "json/json.h"
 #include "common.h"
+#include <string.h>
 #include <sstream>
+using namespace std;
+
 
 class Message
 {

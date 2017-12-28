@@ -31,18 +31,18 @@ bool BaseClient::connectServer()
     return true;
 }
 
-void* BaseClient::recv_thread(void* p){
+void* BaseClient::recv_thread(void* p)
+{
     RecvStatus *ptr = (RecvStatus*)p;
-    Message *msg = new Message();
+    
     char buf[ENC_BLOCK_SIZE] = {};
     while(true)
     {
-        if (recv(ptr->sockfd, buf, sizeof(buf), 0) <= 0){
+        if (recv(ptr->sockfd, buf, sizeof(buf), 0) <= 0)
+        {
             exitError("[BC] Server closed.\n");
         }
-        msg->fromBuffer(buf);
-        msg->decodeMessage();
-        ptr->client_interface->process_response(msg->type, msg->content);
+        ptr->client_interface->process_response(buf);
         usleep(10);
     }
 }
@@ -104,18 +104,50 @@ bool BaseClient::sendRequest(int op, string content)
     return (process_state == 1);
 }
 
+void BaseClient::recvFile(Message *msg)
+{
+    std::string fname = msg->root["filename"].asString();
+    std::string data = msg->root["content"].asString();
+    printf("Recv file(%lu/%lu)\n", data.length(), strlen(msg->message));
+    CryptoFile cy;
+    cy.openOutputFile("./downloads/" + fname);
+    cy.writeFileSegment(data, 0, 0);
+    cy.closeOutputFile();
+}
+
+void* BaseClient::recvFileThread(void *arg)
+{
+    //FileThreadInfo *info = (FileThreadInfo*)arg;
+    Message *msg = (Message*)arg;
+    msg->decodeMessage();
+    std::string fname = msg->root["filename"].asString();
+    std::string data = msg->root["content"].asString();
+    printf("Recv file(%lu/%lu)\n", data.length(), strlen(msg->message));
+    CryptoFile cy;
+    cy.openOutputFile("./downloads/" + fname);
+    cy.writeFileSegment(data, 0, 0);
+    cy.closeOutputFile();
+    delete msg;
+    return NULL;
+}
+
 /// Content is the message content
 /// Usually a string or a JSON in decision message
-void BaseClient::process_response(int op, string content)
+void BaseClient::process_response(const char *buf)
 {
-    _vb(cout << " | [BC] Process : "<< content <<endl);
     bool flag;
+    Message *msg = new Message();
     Json::Value respond;
     DecisionMessage *dmsg = new DecisionMessage();
     string spond;
     string smd;
     char cmd[128];
 
+    msg->fromBuffer(buf);
+    msg->decodeMessage();
+
+    int op = msg->type;
+    string content = msg->content;
     std::ostringstream sstream(spond);
     std::istringstream stream(content);
 
@@ -124,6 +156,11 @@ void BaseClient::process_response(int op, string content)
     // Recv file ack
     case CLIENT_MSG_FILEACK:
         recv_ack = true;
+        break;
+    // Recv file
+    case CLIENT_MSG_FILE:
+        recvFile(msg);
+        sendMessage(CLIENT_MSG_FILEACK, "");
         break;
     // Recv message of word
     case CLIENT_MSG_WORD:
@@ -273,6 +310,7 @@ void BaseClient::sendFile(string fname)
         sendMessage(document.c_str(), document.length());
         while(!recv_ack) usleep(10);
     }
+    cy.closeFile();
 }
 
 void BaseClient::start_chat()

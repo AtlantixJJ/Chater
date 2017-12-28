@@ -2,10 +2,13 @@
 #define BASECLIENT_H_
 
 #include "common.h"
+#include "message.h"
 #include "clientutils.h"
 #include "serverconfig.h"
 #include "clientconfig.h"
 #include "cryptofile.h"
+
+class Message;
 
 class BaseClient
 {
@@ -26,7 +29,8 @@ public:
     static void sendFileThread(void *arg);
     void start_recv();
     void start_chat();
-
+    void recvFile(Message *msg);
+    static void* recvFileThread(void *arg);
     ClientConfig* getClientConfig() {return cc;}
     bool isChatting() const {return is_chatting;}
 public:
@@ -38,7 +42,7 @@ public:
 private:
     
     static int decodeChatCMD(char *buf);
-    void process_response(int op, string content);
+    void process_response(const char *buf);
     static void* recv_thread(void *p);
 
 private:

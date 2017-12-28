@@ -42,6 +42,7 @@ private:
     static void* service_thread(void* args);
 
 private:
+    bool recv_ack;
     ServerConfig *sc;
     UserDataBase *db;
     ClientStatus *client_sockfd;
@@ -53,6 +54,13 @@ private:
 struct FileThreadInfo
 {
     BaseServer *bs;
+    Message *msg;
+};
+
+struct SendFileInfo
+{
+    BaseServer *bs;
+    ClientStatus *client;
     Message *msg;
 };
 

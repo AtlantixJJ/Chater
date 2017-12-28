@@ -195,9 +195,9 @@ void BaseServer::sendMessage(ClientStatus *client, int op, std::string content)
     ack->content = content;
 
     ack->encodeMessage();
-
-    printf("[BS] Send to %d : %s\n", client->getSockfd(), ack->message);
-    send(client->getSockfd(), ack->message, strlen(ack->message), 0);
+    int len = strlen(ack->message);
+    printf("[BS] Send to %d len %d\n", client->getSockfd(), len);
+    send(client->getSockfd(), ack->message, len, 0);
     delete ack;
 }
 
@@ -209,13 +209,49 @@ void BaseServer::sendFile(ClientStatus *client, Message *msg)
     cy.decodeString(msg->content);
     cy.saveToFile(sc->download_path + fname);
     */
+    std::string fname = msg->root["filename"].asString();
+
+    CryptoFile cy;
+    cy.openFile("./server_file/" + fname);
+    int block_size = FILE_BLOCK_SIZE;
+    int file_size = cy.getFileSize();
+    int block_num = cy.getFileSize() / block_size;
+    int pos = 0;
+    if (block_num % block_size != 0) block_num ++;
+
+    std::ostringstream stream;
+    Json::StreamWriterBuilder wbuilder;
+    wbuilder["indentation"] = ""; // No identation for message encoding
+
+    Json::Value msg_json;
+    msg_json["type"]     = Json::Value(CLIENT_MSG_FILE  );
+    msg_json["filename"] = Json::Value(fname            );
+
+    for (int i = 0; i < block_num; i++)
+    {
+        recv_ack = false;
+        pos = block_size * i;
+        if (i == block_num - 1)
+        {
+            block_size = file_size % block_size;
+            msg_json["eof"] = Json::Value(1);
+        } else msg_json["eof"] = Json::Value(0);
+        string seg = cy.getFileSegment(pos, block_size);
+        msg_json["content"]     = Json::Value(seg              );
+        msg_json["block_size"]  = Json::Value(block_size       );
+        std::string document = Json::writeString(wbuilder, msg_json) + "\n\0\0";
+        printf("Send File (%lu/%lu) : %s\n", seg.length(), document.length(), document.c_str());
+        ::send(client->getSockfd(), document.c_str(), document.length(), 0);
+        //sendMessage(client, CLIENT_MSG_SENDFILE, document.c_str(), document.length());
+        while(!recv_ack) usleep(10);
+    }
 }
 
 void BaseServer::recvFile(Message *msg)
 {
     std::string fname = msg->root["filename"].asString();
     std::string data = msg->root["content"].asString();
-    printf("Recv file(%d/%d)\n", data.length(), strlen(msg->message));
+    printf("Recv file(%lu/%lu)\n", data.length(), strlen(msg->message));
     CryptoFile cy;
     cy.openOutputFile("./server_file/" + fname);
     cy.writeFileSegment(data, 0, 0);
@@ -229,7 +265,7 @@ void* BaseServer::recvFileThread(void *arg)
     msg->decodeMessage();
     std::string fname = msg->root["filename"].asString();
     std::string data = msg->root["content"].asString();
-    printf("Recv file(%d/%d)\n", data.length(), strlen(msg->message));
+    printf("Recv file(%lu/%lu)\n", data.length(), strlen(msg->message));
     CryptoFile cy;
     cy.openOutputFile("./server_file/" + fname);
     cy.writeFileSegment(data, 0, 0);
@@ -271,13 +307,13 @@ void BaseServer::process_message(ClientStatus *client, const char* buf)
     case CLIENT_MSG_FILE:
         peer = db->getRoot()[client->getAccount()]["peer"];
         peer_cc = (ClientStatus*)peer["status"].asInt64();
-        //recvFile(msg);
+        recvFile(msg);
         //info = new FileThreadInfo;
         //info->bs = this; info->msg = msg;
-        pthread_create(&tid, 0, recvFileThread, (void*)(new Message(buf)));
+        //pthread_create(&tid, 0, recvFileThread, (void*)(new Message(buf)));
         sendMessage(client, CLIENT_MSG_FILEACK, "");
-        //if (!msg->root["eof"].asInt() == 1)
-        //    sendFile()
+        if (msg->root["eof"].asInt() == 1)
+            sendFile(client, msg);
         break;
     // content is peer name
     case CLIENT_MSG_CHAT:
